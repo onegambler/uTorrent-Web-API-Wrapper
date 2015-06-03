@@ -4,6 +4,7 @@ import com.utorrent.webapiwrapper.restclient.ConnectionParams;
 import com.utorrent.webapiwrapper.restclient.RESTClient;
 
 import java.io.IOException;
+import java.util.Collections;
 
 public class MainTest {
 
@@ -24,8 +25,8 @@ public class MainTest {
         //api.getTorrentList().forEach(System.out::println);
 //        System.out.println(api.getTorrent(first.getHash()));
 //        System.out.println(api.getTorrentFiles(Collections.singletonList(first.getHash())));
-        //System.out.println(api.getTorrentProperties(Collections.singletonList(first.getHash())));
-        System.out.println(api.getClientSettings());
+        System.out.println(api.getTorrentProperties(Collections.singletonList(first.getHash())));
+        //System.out.println(api.getClientSettings());
 
         //api.addTorrent(new TorrentFileList("C:\\Users\\PC\\Desktop\\DF37F2F005B047CE561B121CFAF427B873AD6BEE.torrent"));
     }

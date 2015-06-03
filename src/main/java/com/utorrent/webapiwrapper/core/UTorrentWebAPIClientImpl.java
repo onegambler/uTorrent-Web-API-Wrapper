@@ -142,10 +142,9 @@ public class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
     }
 
     @Override
-    public String getTorrentProperties(List<String> torrentHash) {
-        String returnedValue = executeAction(GET_PROP, Collections.unmodifiableList(torrentHash), Collections.emptyList());
-        //TODO: ritornare correttamente un'oggetto
-        return returnedValue;
+    public TorrentProperties getTorrentProperties(List<String> torrentHash) {
+        String jsonTorrentPropertiesMessage = executeAction(GET_PROP, Collections.unmodifiableList(torrentHash), Collections.emptyList());
+        return messageParser.parseAsTorrentProperties(jsonTorrentPropertiesMessage);
     }
 
     @Override

@@ -104,4 +104,21 @@ public class MessageParser {
 
         return settings;
     }
+
+    public TorrentProperties parseAsTorrentProperties(String jsonMessage) {
+        JsonObject jsonTorrentSettings = jsonParser.fromJson(jsonMessage, JsonObject.class).get("props").getAsJsonArray().get(0).getAsJsonObject();
+        return TorrentProperties.builder()
+                .hash(jsonTorrentSettings.get("hash").getAsString())
+                .trackers(jsonTorrentSettings.get("trackers").getAsString().split("\\r\\n"))
+                .uploadRate(jsonTorrentSettings.get("ulrate").getAsInt())
+                .downloadRate(jsonTorrentSettings.get("dlrate").getAsInt())
+                .superSeed(jsonTorrentSettings.get("superseed").getAsInt() == 1)
+                .useDHT(jsonTorrentSettings.get("dht").getAsInt() == 1)
+                .usePEX(jsonTorrentSettings.get("pex").getAsInt() == 1)
+                .seedOverride(jsonTorrentSettings.get("seed_override").getAsInt() == 1)
+                .seedRatio(jsonTorrentSettings.get("seed_ratio").getAsInt())
+                .seedTime(Duration.ofSeconds(jsonTorrentSettings.get("seed_time").getAsInt()))
+                .uploadSlots(jsonTorrentSettings.get("ulslots").getAsInt())
+                .build();
+    }
 }

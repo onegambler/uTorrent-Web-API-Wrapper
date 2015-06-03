@@ -25,7 +25,7 @@ import com.utorrent.webapiwrapper.restclient.Request;
 
 	 TorrentFileList getTorrentFiles(List<String> torrentHashes);
 	
-	 String getTorrentProperties(List<String> torrentHash);
+	 TorrentProperties getTorrentProperties(List<String> torrentHash);
 	
 	 RequestResult startTorrent(List<String> hashes);
 	
