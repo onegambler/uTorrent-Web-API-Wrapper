@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Set;
 
 import com.utorrent.webapiwrapper.core.entities.*;
+import com.utorrent.webapiwrapper.restclient.ConnectionParams;
+import com.utorrent.webapiwrapper.restclient.RESTClient;
 import com.utorrent.webapiwrapper.restclient.Request;
 
 /**
@@ -15,7 +17,7 @@ import com.utorrent.webapiwrapper.restclient.Request;
  * @author Roberto Magale
  * 10/apr/2012
  */
- interface UTorrentWebAPIClient extends Closeable {
+ public interface UTorrentWebAPIClient extends Closeable {
 
 	 RequestResult addTorrent(String url) throws IOException;
 	
@@ -54,4 +56,9 @@ import com.utorrent.webapiwrapper.restclient.Request;
 	RequestResult setClientSetting(SettingsKey settingKey, String settingValue);
 
 	ClientSettings getClientSettings();
+
+	static UTorrentWebAPIClient getClient(ConnectionParams connectionParams) {
+
+		return new UTorrentWebAPIClientImpl(new RESTClient(connectionParams), connectionParams, new MessageParser());
+	}
 }

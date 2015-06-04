@@ -24,7 +24,7 @@ import static com.utorrent.webapiwrapper.core.entities.RequestResult.SUCCESS;
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 
-public class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
+class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
 
     private static final String ACTION_QUERY_PARAM_NAME = "action";
     private static final String TOKEN_PARAM_NAME = "token";
@@ -41,12 +41,12 @@ public class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
     private final TorrentsCache torrentsCache;
     private final URI serverURI;
 
-    private final MessageParser messageParser = new MessageParser();
+    private final MessageParser messageParser;
 
     private String token;
 
 
-    public UTorrentWebAPIClientImpl(RESTClient client, ConnectionParams connectionParams) {
+    public UTorrentWebAPIClientImpl(RESTClient client, ConnectionParams connectionParams, MessageParser messageParser) {
         this.client = client;
         URIBuilder uriBuilder = new URIBuilder()
                 .setScheme(connectionParams.getScheme())
@@ -54,6 +54,7 @@ public class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
                 .setPort(connectionParams.getPort())
                 .setPath("/gui/");
         this.serverURI = getURI(uriBuilder);
+        this.messageParser = messageParser;
         torrentsCache = new TorrentsCache();
     }
 
