@@ -45,7 +45,7 @@ public class MessageParserTest extends TestCase {
 
     @Test
     public void testParseAsTorrentFileList() throws Exception {
-
+        return;
     }
 
     @Test
