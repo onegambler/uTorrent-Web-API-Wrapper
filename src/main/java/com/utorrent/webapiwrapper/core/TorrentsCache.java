@@ -2,6 +2,7 @@ package com.utorrent.webapiwrapper.core;
 
 import com.utorrent.webapiwrapper.core.entities.Torrent;
 import com.utorrent.webapiwrapper.core.entities.TorrentListSnapshot;
+import lombok.NonNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,8 +42,7 @@ public class TorrentsCache {
         return torrentsMap.values().stream().collect(Collectors.toSet());
     }
 
-    public void updateCache(TorrentListSnapshot torrentListSnapshot) {
-        requireNonNull(torrentListSnapshot, "TorrentListSnapshot cannot be null");
+    public void updateCache(@NonNull TorrentListSnapshot torrentListSnapshot) {
         torrentListSnapshot.getTorrentsToAdd().forEach(this::addTorrent);
         torrentListSnapshot.getTorrentToRemoveHashes().forEach(this::removeTorrent);
         this.cachedID = torrentListSnapshot.getCacheID();

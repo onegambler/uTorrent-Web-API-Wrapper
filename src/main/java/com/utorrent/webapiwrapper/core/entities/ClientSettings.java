@@ -1,14 +1,10 @@
 package com.utorrent.webapiwrapper.core.entities;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.ToString;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
-import java.util.function.Function;
 
 import static java.util.Objects.requireNonNull;
 
