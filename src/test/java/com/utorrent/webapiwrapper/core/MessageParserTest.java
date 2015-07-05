@@ -22,7 +22,7 @@ public class MessageParserTest {
     @Test
     public void whenJSONMessageIsPassedThenParseItAsTorrentFileListSnapshot() throws Exception {
 
-        TorrentFileList torrentFileList = messageParser.parseAsTorrentFileList(getTestMessage("test/torrent.list.json"));
+        TorrentFileList torrentFileList = messageParser.parseAsTorrentFileList(getTestMessage("com/utorrent/webapiwrapper/core/torrent.list.json"));
         assertEquals(HASH, torrentFileList.getHash());
         assertTrue(torrentFileList.getFiles().size() == 2);
         AssertEntities.assertEquals(torrentFileList.getFiles().get(0), "File_1", 1024, 27, Priority.NORMAL_PRIORITY);
@@ -40,7 +40,7 @@ public class MessageParserTest {
 
     @Test
     public void whenJSONMessageIsPassedThenParseItAsClientSettings() throws Exception {
-        ClientSettings clientSettings = messageParser.parseAsClientSettings(getTestMessage("test/client.settings.json"));
+        ClientSettings clientSettings = messageParser.parseAsClientSettings(getTestMessage("com/utorrent/webapiwrapper/core/client.settings.json"));
 
         assertEquals(3, clientSettings.getAllSettings().size());
 
@@ -59,7 +59,7 @@ public class MessageParserTest {
 
     @Test
     public void whenJSONMessageIsPassedThenParseItAsTorrentProperties() throws Exception {
-        String message = getTestMessage("test/torrent.properties.json");
+        String message = getTestMessage("com/utorrent/webapiwrapper/core/torrent.properties.json");
         TorrentProperties properties = messageParser.parseAsTorrentProperties(message);
         assertNotNull(properties);
         assertEquals(HASH, properties.getHash());
