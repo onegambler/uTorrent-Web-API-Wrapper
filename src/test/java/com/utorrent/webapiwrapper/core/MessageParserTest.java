@@ -1,16 +1,21 @@
 package com.utorrent.webapiwrapper.core;
 
 import com.google.gson.JsonSyntaxException;
-import com.utorrent.webapiwrapper.core.entities.AssertEntities;
-import com.utorrent.webapiwrapper.core.entities.ClientSettings;
-import com.utorrent.webapiwrapper.core.entities.Priority;
-import com.utorrent.webapiwrapper.core.entities.TorrentFileList;
+import com.utorrent.webapiwrapper.core.entities.*;
+import com.utorrent.webapiwrapper.utils.IOUtils;
 import org.junit.Test;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
+import java.net.URL;
+import java.nio.file.Paths;
+import java.time.Duration;
+
+import static java.util.Objects.requireNonNull;
+import static junit.framework.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
 
 public class MessageParserTest {
+
+    private final MessageParser messageParser = new MessageParser();
 
     @Test
     public void whenJSONMessageIsPassedThenParseItAsTorrentFileListSnapshot() throws Exception {
@@ -49,17 +54,38 @@ public class MessageParserTest {
     }
 
     @Test
-    public void testParseAsTorrentProperties() throws Exception {
+    public void whenJSONMessageIsPassedThenParseItAsTorrentProperties() throws Exception {
+        String message = getTestMessage("test/torrent.properties.json");
+        TorrentProperties properties = messageParser.parseAsTorrentProperties(message);
+        assertNotNull(properties);
+        assertEquals(HASH, properties.getHash());
+        assertArrayEquals(new String[]{"http://tracker.com"}, properties.getTrackers());
+        assertEquals(1, properties.getUploadRate());
+        assertEquals(2, properties.getDownloadRate());
+        assertEquals(TorrentProperties.State.ENABLED, properties.getSuperSeed());
+        assertEquals(TorrentProperties.State.ENABLED, properties.getUseDHT());
+        assertEquals(TorrentProperties.State.NOT_ALLOWED, properties.getUsePEX());
+        assertEquals(TorrentProperties.State.DISABLED, properties.getSeedOverride());
+        assertEquals(7, properties.getSeedRatio());
+        assertEquals(Duration.ofSeconds(8), properties.getSeedTime());
+        assertEquals(9, properties.getUploadSlots());
+
 
     }
 
-    public static final int BUILD_NUMBER = 1111;
-    public static final String INT_SETTING = "int_setting";
-    public static final String INT_SETTING_VALUE = "5";
-    public static final String STRING_SETTING = "string_setting";
-    public static final String STRING_SETTING_VALUE = "value";
-    public static final String BOOLEAN_SETTING = "boolean_setting";
-    public static final String BOOLEAN_SETTING_VALUE = "true";
+    private String getTestMessage(String fileName) throws Exception {
+        URL resource = getClass().getClassLoader().getResource("test/torrent.properties.json");
+        requireNonNull(resource);
+        return IOUtils.readFileFully(Paths.get(resource.toURI()).toFile());
+    }
+
+    private final int BUILD_NUMBER = 1111;
+    private final String INT_SETTING = "int_setting";
+    private final String INT_SETTING_VALUE = "5";
+    private final String STRING_SETTING = "string_setting";
+    private final String STRING_SETTING_VALUE = "value";
+    private final String BOOLEAN_SETTING = "boolean_setting";
+    private final String BOOLEAN_SETTING_VALUE = "true";
     private final int FILE_1_SIZE = 20;
     private final int FILE_1_DOWNLOADED = 30;
     private final Priority FILE_1_PRIORITY = Priority.NORMAL_PRIORITY;
@@ -68,11 +94,21 @@ public class MessageParserTest {
     private final int FILE_2_DOWNLOADED = 40;
     private final String FILE_1_NAME = "File 1";
     private final String FILE_2_NAME = "File 2";
-    private final String HASH = "33FF";
-    private MessageParser messageParser = new MessageParser();
+    private final String HASH = "HASH";
+    private final String TRACKERS = "trackers";
+    private final String ULRATE = "ulrate";
+    private final String UPLOAD_LIMIT = "UPLOAD LIMIT";
+    private final String DOWNLOAD_RATE_PROPERTY = "dlrate";
+    private final String SUPERSEED_PROPERTY = "superseed";
+    private final String DHT_PROPERTY = "dht";
+    private final String PEX_SETTING = "pex";
+    private final String SEED_OVERRIDE_PROPERTY = "seed_override";
+    private final String SEED_OVERRIDE_PROPERTY_VALUE = "21";
     private final String TORRENT_FILE_LIST_MESSAGE = "{\"build\": " + BUILD_NUMBER + ",\"files\":[\"" + HASH + "\",[[\"" + FILE_1_NAME + "\", " +
             FILE_1_SIZE + ", " + FILE_1_DOWNLOADED + ", " + FILE_1_PRIORITY.getValue() + "],[\"" + FILE_2_NAME + "\", " + FILE_2_SIZE + ", " +
             FILE_2_DOWNLOADED + ", " + FILE_2_PRIORITY.getValue() + "]]]}";
     private final String CLIENT_SETTINGS = "{\"build\": " + BUILD_NUMBER + ", \"settings\": [[\"" + INT_SETTING + "\", 0, \"" + INT_SETTING_VALUE + "\"]," +
             "[\"" + STRING_SETTING + "\", 2, \"" + STRING_SETTING_VALUE + "\"],[\"" + BOOLEAN_SETTING + "\", 1, \"" + BOOLEAN_SETTING_VALUE + "\"]]}";
+
+    private final String TORRENT_PROPERTIES_MESSAGE_FILE = "/resources/test/torrent.properties.json";
 }
