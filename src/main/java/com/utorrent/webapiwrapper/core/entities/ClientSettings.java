@@ -3,8 +3,10 @@ package com.utorrent.webapiwrapper.core.entities;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import static java.util.Objects.requireNonNull;
 
@@ -24,9 +26,13 @@ public class ClientSettings {
         return settingsMap.get(name);
     }
 
+    public Collection<Setting> getAllSettings() {
+        return settingsMap.values();
+    }
+
     @Getter
     @AllArgsConstructor
-    private class Setting {
+    public class Setting {
         private final String value;
         private final SettingType type;
     }
