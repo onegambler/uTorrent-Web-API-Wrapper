@@ -1,0 +1,20 @@
+{
+  "build": 111,
+  "settings": [
+    [
+      "int_setting",
+      0,
+      "6"
+    ],
+    [
+      "boolean_setting",
+      1,
+      "true"
+    ],
+    [
+      "string_setting",
+      2,
+      "string"
+    ]
+  ]
+}
