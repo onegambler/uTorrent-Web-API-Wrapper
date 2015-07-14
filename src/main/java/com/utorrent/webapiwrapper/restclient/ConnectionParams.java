@@ -7,6 +7,7 @@ import lombok.Setter;
 import java.util.Objects;
 import java.util.Optional;
 
+import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 
 @Getter
@@ -90,7 +91,7 @@ public class ConnectionParams {
 
         public ConnectionParams create() {
             Credentials credentials = null;
-            if (Objects.nonNull(username)) {
+            if (nonNull(username)) {
                 requireNonNull(password);
                 credentials = new Credentials(username, password);
             }
