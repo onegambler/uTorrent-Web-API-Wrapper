@@ -1,40 +1,36 @@
 package com.utorrent.webapiwrapper.restclient;
 
+import com.google.common.base.Throwables;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.ContentType;
 
 import java.io.File;
 import java.net.URI;
-import java.nio.file.Path;
+import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-@Getter
+@Data
 public class Request {
 
-    private URI uri;
-    private Set<QueryParam> params;
-    private Set<FilePart> files;
-
-    private Request(URI uri, Set<QueryParam> params, Set<FilePart> files) {
-        this.uri = uri;
-        this.params = params;
-        this.files = files;
-    }
+    private final URI uri;
+    private final Set<QueryParam> params;
+    private final Set<FilePart> files;
 
     public static RequestBuilder builder() {
         return new RequestBuilder();
     }
 
-    @Getter
-    @EqualsAndHashCode
+    @Data
     public static class FilePart {
-        private String name;
-        private File file;
-        private ContentType contentType;
+        private final String name;
+        private final File file;
+        private final ContentType contentType;
 
         public FilePart(String name, File file, ContentType contentType) {
             this.name = name;
@@ -43,16 +39,14 @@ public class Request {
         }
     }
 
-    @Getter
-    @AllArgsConstructor
-    @EqualsAndHashCode
+    @Data
     public static class QueryParam {
         private final String name;
         private final String value;
     }
 
     public static class RequestBuilder {
-        private URI uri;
+        private URIBuilder uriBuilder;
         private Set<QueryParam> params;
         private Set<FilePart> files;
 
@@ -71,19 +65,28 @@ public class Request {
             return this;
         }
 
+        public RequestBuilder setDestination(URIBuilder uriBuilder) {
+            this.uriBuilder = uriBuilder;
+            return this;
+        }
+
         public RequestBuilder setDestination(URI uri) {
-            this.uri = uri;
+            this.uriBuilder = new URIBuilder(uri);
             return this;
         }
 
         public RequestBuilder setDestination(String path) {
-            this.uri = URI.create(path);
+            this.uriBuilder = new URIBuilder(URI.create(path));
             return this;
         }
 
         public Request create() {
-            Objects.requireNonNull(uri, "Destination cannot be null");
-            return new Request(uri, params, files);
+            Objects.requireNonNull(uriBuilder, "Destination cannot be null");
+            try {
+                return new Request(uriBuilder.build(), params, files);
+            } catch (URISyntaxException e) {
+                throw Throwables.propagate(e);
+            }
         }
     }
 }
