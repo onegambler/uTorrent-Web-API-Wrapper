@@ -8,8 +8,10 @@ import org.junit.Test;
 import java.io.InputStream;
 import java.time.Duration;
 
+
+
 import static java.util.Objects.requireNonNull;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class MessageParserTest {
 
@@ -21,8 +23,8 @@ public class MessageParserTest {
     public void whenJSONMessageIsPassedThenParseItAsTorrentFileListSnapshot() throws Exception {
 
         TorrentFileList torrentFileList = messageParser.parseAsTorrentFileList(getTestMessage("com/utorrent/webapiwrapper/core/torrent.list.json"));
-        assertEquals(HASH, torrentFileList.getHash());
-        assertTrue(torrentFileList.getFiles().size() == 2);
+        assertThat(torrentFileList.getHash()).isEqualTo(HASH);
+        assertThat(torrentFileList.getFiles()).hasSize(2);
         AssertEntities.assertEquals(torrentFileList.getFiles().get(0), "File_1", 1024, 27, Priority.NORMAL_PRIORITY);
         AssertEntities.assertEquals(torrentFileList.getFiles().get(1), "File_2", 2048, 54, Priority.DO_NOT_DOWNLOAD);
     }
@@ -40,37 +42,38 @@ public class MessageParserTest {
     public void whenJSONMessageIsPassedThenParseItAsClientSettings() throws Exception {
         ClientSettings clientSettings = messageParser.parseAsClientSettings(getTestMessage("com/utorrent/webapiwrapper/core/client.settings.json"));
 
-        assertEquals(3, clientSettings.getAllSettings().size());
+        assertThat(clientSettings.getAllSettings()).hasSize(3);
 
         ClientSettings.Setting setting = clientSettings.getSetting("int_setting");
-        assertEquals(ClientSettings.SettingType.INTEGER, setting.getType());
-        assertEquals("6", setting.getValue());
+        assertThat(setting.getType()).isEqualTo(ClientSettings.SettingType.INTEGER);
+        assertThat(setting.getValue()).isEqualTo("6");
 
         setting = clientSettings.getSetting("string_setting");
-        assertEquals(ClientSettings.SettingType.STRING, setting.getType());
-        assertEquals("string", setting.getValue());
+        assertThat(setting.getType()).isEqualTo(ClientSettings.SettingType.STRING);
+        assertThat(setting.getValue()).isEqualTo("string");
+
 
         setting = clientSettings.getSetting("boolean_setting");
-        assertEquals(ClientSettings.SettingType.BOOLEAN, setting.getType());
-        assertEquals("true", setting.getValue());
+        assertThat(setting.getType()).isEqualTo(ClientSettings.SettingType.BOOLEAN);
+        assertThat(setting.getValue()).isEqualTo("true");
     }
 
     @Test
     public void whenJSONMessageIsPassedThenParseItAsTorrentProperties() throws Exception {
         String message = getTestMessage("com/utorrent/webapiwrapper/core/torrent.properties.json");
         TorrentProperties properties = messageParser.parseAsTorrentProperties(message);
-        assertNotNull(properties);
-        assertEquals(HASH, properties.getHash());
-        assertArrayEquals(new String[]{"http://tracker.com"}, properties.getTrackers());
-        assertEquals(1, properties.getUploadRate());
-        assertEquals(2, properties.getDownloadRate());
-        assertEquals(TorrentProperties.State.ENABLED, properties.getSuperSeed());
-        assertEquals(TorrentProperties.State.ENABLED, properties.getUseDHT());
-        assertEquals(TorrentProperties.State.NOT_ALLOWED, properties.getUsePEX());
-        assertEquals(TorrentProperties.State.DISABLED, properties.getSeedOverride());
-        assertEquals(7, properties.getSeedRatio());
-        assertEquals(Duration.ofSeconds(8), properties.getSeedTime());
-        assertEquals(9, properties.getUploadSlots());
+        assertThat(properties).isNotNull();
+        assertThat(properties.getHash()).isEqualTo(HASH);
+        assertThat(properties.getTrackers()).containsExactly("http://tracker.com");
+        assertThat(properties.getUploadRate()).isEqualTo(1);
+        assertThat(properties.getDownloadRate()).isEqualTo(2);
+        assertThat(properties.getSuperSeed()).isEqualTo(TorrentProperties.State.ENABLED);
+        assertThat(properties.getUseDHT()).isEqualTo(TorrentProperties.State.ENABLED);
+        assertThat(properties.getUsePEX()).isEqualTo(TorrentProperties.State.NOT_ALLOWED);
+        assertThat(properties.getSeedOverride()).isEqualTo(TorrentProperties.State.DISABLED);
+        assertThat(properties.getSeedRatio()).isEqualTo(7);
+        assertThat(properties.getSeedTime()).isEqualTo(Duration.ofSeconds(8));
+        assertThat(properties.getUploadSlots()).isEqualTo(9);
     }
 
     private String getTestMessage(String fileName) throws Exception {
