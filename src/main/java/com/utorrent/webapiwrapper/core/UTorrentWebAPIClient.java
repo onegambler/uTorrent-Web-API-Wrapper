@@ -1,64 +1,68 @@
 package com.utorrent.webapiwrapper.core;
+
+import com.utorrent.webapiwrapper.core.entities.*;
+import com.utorrent.webapiwrapper.restclient.ConnectionParams;
+import com.utorrent.webapiwrapper.restclient.RESTClient;
+import com.utorrent.webapiwrapper.restclient.Request;
+import org.apache.http.entity.ContentType;
+
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
-import com.utorrent.webapiwrapper.core.entities.*;
-import com.utorrent.webapiwrapper.restclient.ConnectionParams;
-import com.utorrent.webapiwrapper.restclient.RESTClient;
-import com.utorrent.webapiwrapper.restclient.Request;
-
 /**
- * uTorrent WebUI API interface. 
+ * uTorrent WebUI API interface.
  * It allows to interact with uTorrent through its web API.
- * 
+ *
  * @author Roberto Magale
- * 10/apr/2012
+ *         10/apr/2012
  */
- public interface UTorrentWebAPIClient extends Closeable {
+public interface UTorrentWebAPIClient extends Closeable {
 
-	 RequestResult addTorrent(String url) throws IOException;
-	
-	 RequestResult addTorrent(File torrentFile) throws IOException;
+    ContentType APPLICATION_X_BIT_TORRENT_CONTENT_TYPE = ContentType.create("application/x-bittorrent");
 
-	 Torrent getTorrent(String torrentHash) throws IOException;
+    RequestResult addTorrent(String url) throws IOException;
 
-	 TorrentFileList getTorrentFiles(List<String> torrentHashes);
-	
-	 TorrentProperties getTorrentProperties(List<String> torrentHash);
-	
-	 RequestResult startTorrent(List<String> hashes);
-	
-	 RequestResult stopTorrent(List<String> hashes);
-	
-	 RequestResult pauseTorrent(List<String> hashes);
-	
-	 RequestResult forceStartTorrent(List<String> hashes);
-	
-	 RequestResult unpauseTorrent(List<String> hashes);
-	
-	 RequestResult recheckTorrent(List<String> hashes);
-	
-	 RequestResult removeTorrent(List<String> hashes);
-	
-	 RequestResult removeDataTorrent(List<String> hashes);
-	
-	 RequestResult setTorrentFilePriority(String hash, Priority priority, List<Integer> fileIndices);
-	
-	 RequestResult setClientSetting(String settingName, String settingValue);
+    RequestResult addTorrent(File torrentFile) throws IOException;
 
-	RequestResult setClientSetting(List<Request.QueryParam> settings);
+    Torrent getTorrent(String torrentHash) throws IOException;
 
-	 Set<Torrent> getTorrentList();
+    TorrentFileList getTorrentFiles(List<String> torrentHashes);
 
-	RequestResult setClientSetting(SettingsKey settingKey, String settingValue);
+    TorrentProperties getTorrentProperties(List<String> torrentHash);
 
-	ClientSettings getClientSettings();
+    RequestResult startTorrent(List<String> hashes);
 
-	static UTorrentWebAPIClient getClient(ConnectionParams connectionParams) {
+    RequestResult stopTorrent(List<String> hashes);
 
-		return new UTorrentWebAPIClientImpl(new RESTClient(connectionParams), connectionParams, new MessageParser());
-	}
+    RequestResult pauseTorrent(List<String> hashes);
+
+    RequestResult forceStartTorrent(List<String> hashes);
+
+    RequestResult unpauseTorrent(List<String> hashes);
+
+    RequestResult recheckTorrent(List<String> hashes);
+
+    RequestResult removeTorrent(List<String> hashes);
+
+    RequestResult removeDataTorrent(List<String> hashes);
+
+    RequestResult setTorrentFilePriority(String hash, Priority priority, List<Integer> fileIndices);
+
+    RequestResult setClientSetting(String settingName, String settingValue);
+
+    RequestResult setClientSetting(List<Request.QueryParam> settings);
+
+    Set<Torrent> getTorrentList();
+
+    RequestResult setClientSetting(SettingsKey settingKey, String settingValue);
+
+    ClientSettings getClientSettings();
+
+    static UTorrentWebAPIClient getClient(ConnectionParams connectionParams) {
+
+        return new UTorrentWebAPIClientImpl(new RESTClient(connectionParams), connectionParams, new MessageParser());
+    }
 }

@@ -34,7 +34,6 @@ class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
     private static final String HASH_QUERY_PARAM_NAME = "hash";
     private static final String FILE_INDEX_QUERY_PARAM_NAME = "f";
     private static final String PRIORITY_QUERY_PARAM_NAME = "p";
-    private static final String APPLICATION_X_BIT_TORRENT_CONTENT_TYPE = "application/x-bittorrent";
     private static final String TORRENT_FILE_PART_NAME = "torrent_file";
 
     private final RESTClient client;
@@ -105,7 +104,7 @@ class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
                 .addParameter(ACTION_QUERY_PARAM_NAME, ADD_FILE.getName())
                 .addParameter(TOKEN_PARAM_NAME, getAuthenticationToken());
         Request request = Request.builder()
-                .addFile(TORRENT_FILE_PART_NAME, torrentFile, ContentType.create(APPLICATION_X_BIT_TORRENT_CONTENT_TYPE))
+                .addFile(TORRENT_FILE_PART_NAME, torrentFile, APPLICATION_X_BIT_TORRENT_CONTENT_TYPE)
                 .setDestination(getURI(uriBuilder)).create();
         String stringResult = invokeWithAuthentication(() -> client.post(request), true);
         return getResult(stringResult);
