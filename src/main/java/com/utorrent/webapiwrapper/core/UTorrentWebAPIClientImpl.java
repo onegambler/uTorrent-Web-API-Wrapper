@@ -60,7 +60,10 @@ class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
         if (token == null) {
             synchronized (this) {
                 if (token == null) {
-                    token = client.get(serverURI.resolve("token.html"));
+                    Request request = Request.builder()
+                            .setDestination(serverURI.resolve("token.html"))
+                            .create();
+                    token = client.get(request);
                     requireNonNull(token, "Token received is null");
                     token = token.replaceAll("<[^>]*>", "");
                 }
@@ -121,7 +124,7 @@ class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
             requestBuilder.addParameter(CACHE_ID_QUERY_PARAM, torrentsCache.getCachedID());
         }
 
-        String jsonTorrentSnapshotMessage = invokeWithAuthentication(requestBuilder, client::get, true);
+        String jsonTorrentSnapshotMessage = invokeWithAuthentication(requestBuilder, uri -> client.get(Request.builder().setDestination(uri).create()), true);
         torrentsCache.updateCache(messageParser.parseAsTorrentListSnapshot(jsonTorrentSnapshotMessage));
     }
 
@@ -226,7 +229,7 @@ class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
                 .addParameter(ACTION_QUERY_PARAM_NAME, action.getName());
         queryParams.forEach(param -> requestBuilder.addParameter(param.getName(), param.getValue()));
         torrentHashes.forEach(hash -> requestBuilder.addParameter(HASH_QUERY_PARAM_NAME, hash));
-        return invokeWithAuthentication(requestBuilder, client::get, true);
+        return invokeWithAuthentication(requestBuilder, uri -> client.get(Request.builder().setDestination(uri).create()), true);
     }
 
     private void setTokenAsExpired() {

@@ -72,12 +72,12 @@ public class RESTClient implements Closeable {
         return executeVerb(postRequest);
     }
 
-    public String get(URI uri) {
-        HttpUriRequest request = RequestBuilder.get()
-                .setUri(uri)
+    public String get(Request request) {
+        HttpUriRequest httpUriRequest = RequestBuilder.get()
+                .setUri(request.getUri())
                 .setConfig(requestConfig)
                 .build();
-        return executeVerb(request);
+        return executeVerb(httpUriRequest);
     }
 
     private String executeVerb(HttpUriRequest httpRequest) {

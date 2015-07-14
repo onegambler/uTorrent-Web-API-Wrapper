@@ -14,21 +14,6 @@ public class IOUtils {
 		}
 	}
 
-	public static String readFileFully(File file) throws IOException {
-		StringBuilder stringBuilder = new StringBuilder();
-
-		try (Scanner scanner = new Scanner(file)) {
-			while(scanner.hasNext()) {
-				stringBuilder.append(scanner.next());
-			}
-		}
-		return stringBuilder.toString();
-	}
-
-	public static String readFileFully(String fileName) throws IOException {
-		return readFileFully(new File(fileName));
-	}
-
 	public static String readFileFully(InputStream stream) throws IOException {
 		StringBuilder stringBuilder = new StringBuilder();
 

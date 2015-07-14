@@ -1,6 +1,9 @@
 package com.utorrent.webapiwrapper.core;
 
+import com.google.common.collect.ImmutableList;
 import com.utorrent.webapiwrapper.core.entities.RequestResult;
+import com.utorrent.webapiwrapper.core.entities.Torrent;
+import com.utorrent.webapiwrapper.core.entities.TorrentFileList;
 import com.utorrent.webapiwrapper.core.entities.TorrentListSnapshot;
 import com.utorrent.webapiwrapper.restclient.ConnectionParams;
 import com.utorrent.webapiwrapper.restclient.RESTClient;
@@ -19,6 +22,8 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.File;
 import java.net.URI;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -57,7 +62,7 @@ public class UTorrentWebAPIClientImplTest {
                 .setPath("/gui/").build();
 
         client = new UTorrentWebAPIClientImpl(restClient, connectionParams, parser);
-        when(restClient.get(serverURI.resolve("token.html"))).thenReturn(TOKEN_VALUE);
+        when(restClient.get(Request.builder().setDestination(serverURI.resolve("token.html")).create())).thenReturn(TOKEN_VALUE);
     }
 
     @Test
@@ -110,34 +115,91 @@ public class UTorrentWebAPIClientImplTest {
     @Test
     public void testAddTorrentWithStringPathSuccess() throws Exception {
         String torrentURL = "fakeURL";
-        ArgumentCaptor<URI> argumentCaptor = ArgumentCaptor.forClass(URI.class);
+        ArgumentCaptor<Request> argumentCaptor = ArgumentCaptor.forClass(Request.class);
         when(restClient.get(argumentCaptor.capture())).thenReturn("build");
 
         RequestResult requestResult = client.addTorrent(torrentURL);
         assertThat(requestResult).isEqualTo(RequestResult.SUCCESS);
 
         String uriString = String.format(URI_ACTION_STRING_TEMPLATE, serverURI, Action.ADD_URL.getName()) + "&s=fakeURL&token=build";
-        assertThat(argumentCaptor.getValue()).hasToString(uriString);
+        assertThat(argumentCaptor.getValue().getUri()).hasToString(uriString);
     }
 
     @Test
     public void testGetTorrentList() throws Exception {
+        when(restClient.get(any(Request.class))).thenReturn("build");
+        TorrentListSnapshot torrentListSnapshot = new TorrentListSnapshot();
+        String cacheID = "cacheID_1";
+        torrentListSnapshot.setCacheID(cacheID);
+        Torrent firstTorrent = Torrent.builder().hash("hash_1").build();
+        Torrent secondTorrent = Torrent.builder().hash("hash_2").build();
+        torrentListSnapshot.addTorrentToAdd(firstTorrent);
+        torrentListSnapshot.addTorrentToAdd(secondTorrent);
+        when(parser.parseAsTorrentListSnapshot(anyString())).thenReturn(torrentListSnapshot);
+        assertThat(torrentListSnapshot.getCacheID()).isEqualTo(cacheID);
 
+        Set<Torrent> torrentList = client.getTorrentList();
+        assertThat(torrentList).containsOnly(firstTorrent, secondTorrent);
+
+        torrentListSnapshot.getTorrentsToAdd().clear();
+        torrentListSnapshot.addTorrentToDelete(secondTorrent.getHash());
+        cacheID = "cacheID_2";
+        torrentListSnapshot.setCacheID(cacheID);
+        torrentList = client.getTorrentList();
+        assertThat(torrentList).containsOnly(firstTorrent);
+        assertThat(torrentListSnapshot.getCacheID()).isEqualTo(cacheID);
+
+        torrentListSnapshot.getTorrentsToAdd().clear();
+        torrentListSnapshot.getTorrentToRemoveHashes().clear();
+        torrentListSnapshot.addTorrentToAdd(secondTorrent);
+        Torrent thirdTorrent = Torrent.builder().hash("hash_3").build();
+        torrentListSnapshot.addTorrentToAdd(thirdTorrent);
+        torrentListSnapshot.addTorrentToDelete(firstTorrent.getHash());
+        cacheID = "cacheID_3";
+        torrentListSnapshot.setCacheID(cacheID);
+        torrentList = client.getTorrentList();
+        assertThat(torrentList).containsOnly(secondTorrent, thirdTorrent);
+        assertThat(torrentListSnapshot.getCacheID()).isEqualTo(cacheID);
     }
 
     @Test
     public void testGetTorrent() throws Exception {
-
+        String hashFirstTorrent = "hash_1";
+        Torrent firstTorrent = Torrent.builder().hash(hashFirstTorrent).build();
+        String hashSecondTorrent = "hash_2";
+        Torrent secondTorrent = Torrent.builder().hash(hashSecondTorrent).build();
+        when(restClient.get(any(Request.class))).thenReturn("build");
+        TorrentListSnapshot torrentListSnapshot = new TorrentListSnapshot();
+        torrentListSnapshot.addTorrentToAdd(firstTorrent);
+        torrentListSnapshot.addTorrentToAdd(secondTorrent);
+        when(parser.parseAsTorrentListSnapshot(anyString())).thenReturn(torrentListSnapshot);
+        assertThat(client.getTorrent(hashFirstTorrent)).isEqualTo(firstTorrent);
+        assertThat(client.getTorrent(hashSecondTorrent)).isEqualTo(secondTorrent);
     }
 
     @Test
     public void testGetTorrentFiles() throws Exception {
+        String nameFirstTorrent = "file_1";
+        TorrentFileList.File firstTorrent = TorrentFileList.File.builder().name(nameFirstTorrent).build();
+        String nameSecondTorrent = "file_2";
+        TorrentFileList.File secondTorrent = TorrentFileList.File.builder().name(nameSecondTorrent).build();
+
+        String existingHash = "hash_1";
+        when(restClient.get(any(Request.class))).thenReturn(existingHash);
+        TorrentFileList torrentFileList = new TorrentFileList();
+        torrentFileList.addFile(firstTorrent);
+        torrentFileList.addFile(secondTorrent);
+        torrentFileList.setHash(existingHash);
+        when(parser.parseAsTorrentFileList(existingHash)).thenReturn(torrentFileList);
+
+        TorrentFileList result = client.getTorrentFiles(ImmutableList.of(existingHash));
+        assertThat(result).isEqualTo(torrentFileList);
 
     }
 
     @Test
     public void testGetTorrentProperties() throws Exception {
-
+        //client.getTorrentProperties();
     }
 
     @Test

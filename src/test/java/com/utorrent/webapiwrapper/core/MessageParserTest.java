@@ -5,13 +5,11 @@ import com.utorrent.webapiwrapper.core.entities.*;
 import com.utorrent.webapiwrapper.utils.IOUtils;
 import org.junit.Test;
 
-import java.net.URL;
-import java.nio.file.Paths;
+import java.io.InputStream;
 import java.time.Duration;
 
 import static java.util.Objects.requireNonNull;
-import static junit.framework.Assert.*;
-import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.*;
 
 public class MessageParserTest {
 
@@ -76,9 +74,9 @@ public class MessageParserTest {
     }
 
     private String getTestMessage(String fileName) throws Exception {
-        URL resource = getClass().getClassLoader().getResource(fileName);
+        InputStream resource = getClass().getClassLoader().getResourceAsStream(fileName);
         requireNonNull(resource);
-        return IOUtils.readFileFully(Paths.get(resource.toURI()).toFile());
+        return IOUtils.readFileFully(resource);
     }
 
 }
