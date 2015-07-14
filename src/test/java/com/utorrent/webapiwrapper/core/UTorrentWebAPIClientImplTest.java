@@ -1,35 +1,30 @@
 package com.utorrent.webapiwrapper.core;
 
 import com.utorrent.webapiwrapper.core.entities.RequestResult;
-import com.utorrent.webapiwrapper.core.entities.TorrentFileList;
+import com.utorrent.webapiwrapper.core.entities.TorrentListSnapshot;
 import com.utorrent.webapiwrapper.restclient.ConnectionParams;
 import com.utorrent.webapiwrapper.restclient.RESTClient;
 import com.utorrent.webapiwrapper.restclient.Request;
+import com.utorrent.webapiwrapper.restclient.exceptions.BadRequestException;
+import org.apache.http.ProtocolVersion;
+import org.apache.http.StatusLine;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.entity.ContentType;
-import org.hamcrest.CoreMatchers;
-import org.hamcrest.Matchers;
+import org.apache.http.message.BasicStatusLine;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.matchers.JUnitMatchers;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.File;
 import java.net.URI;
-import java.util.Optional;
 
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class UTorrentWebAPIClientImplTest {
@@ -42,9 +37,9 @@ public class UTorrentWebAPIClientImplTest {
 
     private UTorrentWebAPIClientImpl client;
 
-    private static final String EXPECTED_URI_STRING = "";
-
     private URI serverURI;
+
+    private final String URI_ACTION_STRING_TEMPLATE = "%s?action=%s";
 
     @Before
     public void setUp() throws Exception {
@@ -66,6 +61,22 @@ public class UTorrentWebAPIClientImplTest {
     }
 
     @Test
+    public void testInvokeWithAuthentication() {
+        File torrentFile = new File("fakePath");
+        when(restClient.post(any())).thenReturn("build");
+        when(parser.parseAsTorrentListSnapshot(anyString())).thenReturn(new TorrentListSnapshot());
+        StatusLine statusLine = new BasicStatusLine(new ProtocolVersion("protocol", 0, 1), 5, "reason");
+        when(restClient.get(any())).thenReturn(TOKEN_VALUE);
+        client.addTorrent(torrentFile);
+        when(restClient.post(any())).thenThrow(new BadRequestException(statusLine));
+        assertThatThrownBy(() -> client.addTorrent(torrentFile))
+                .isInstanceOf(UTorrentAuthException.class)
+                .hasRootCauseInstanceOf(BadRequestException.class)
+                .hasMessage("Impossible to connect to uTorrents, wrong username or password");
+        verify(restClient, times(2)).get(any());
+    }
+
+    @Test
     public void testAddTorrentWithFileSuccess() throws Exception {
         File torrentFile = new File("fakePath");
 
@@ -73,16 +84,16 @@ public class UTorrentWebAPIClientImplTest {
         when(restClient.post(argumentCaptor.capture())).thenReturn("build");
 
         RequestResult requestResult = client.addTorrent(torrentFile);
-        assertEquals(RequestResult.SUCCESS, requestResult);
+        assertThat(requestResult).isEqualTo(RequestResult.SUCCESS);
 
         Request request = argumentCaptor.getValue();
-        assertThat(request.getParams(), empty());
-        assertEquals(serverURI.toString() + "?action=" + Action.ADD_FILE.getName() + "&token=" + TOKEN_VALUE, request.getUri().toString());
-        assertThat(request.getFiles(), hasSize(1));
+        assertThat(request.getParams()).isEmpty();
+        assertThat(request.getUri()).hasToString(String.format(URI_ACTION_STRING_TEMPLATE, serverURI.toString(), Action.ADD_FILE.getName()) + "&token=" + TOKEN_VALUE);
+        assertThat(request.getFiles()).hasSize(1);
         Request.FilePart filePart = request.getFiles().stream().findFirst().get();
-        assertEquals(torrentFile, filePart.getFile());
-        assertEquals("torrent_file", filePart.getName());
-        assertThat(filePart.getContentType(), is(UTorrentWebAPIClient.APPLICATION_X_BIT_TORRENT_CONTENT_TYPE));
+        assertThat(torrentFile).isEqualTo(filePart.getFile());
+        assertThat(filePart.getName()).isEqualTo("torrent_file");
+        assertThat(filePart.getContentType()).isEqualTo(UTorrentWebAPIClient.APPLICATION_X_BIT_TORRENT_CONTENT_TYPE);
     }
 
     @Test
@@ -93,13 +104,20 @@ public class UTorrentWebAPIClientImplTest {
         when(restClient.post(argumentCaptor.capture())).thenReturn("wrong");
 
         RequestResult requestResult = client.addTorrent(torrentFile);
-        assertEquals(RequestResult.FAIL, requestResult);
+        assertThat(requestResult).isEqualTo(RequestResult.FAIL);
     }
 
     @Test
     public void testAddTorrentWithStringPathSuccess() throws Exception {
         String torrentURL = "fakeURL";
+        ArgumentCaptor<URI> argumentCaptor = ArgumentCaptor.forClass(URI.class);
+        when(restClient.get(argumentCaptor.capture())).thenReturn("build");
 
+        RequestResult requestResult = client.addTorrent(torrentURL);
+        assertThat(requestResult).isEqualTo(RequestResult.SUCCESS);
+
+        String uriString = String.format(URI_ACTION_STRING_TEMPLATE, serverURI, Action.ADD_URL.getName()) + "&s=fakeURL&token=build";
+        assertThat(argumentCaptor.getValue()).hasToString(uriString);
     }
 
     @Test

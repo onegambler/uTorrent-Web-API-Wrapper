@@ -1,22 +1,21 @@
 package com.utorrent.webapiwrapper.core;
 
+import com.google.common.collect.ImmutableList;
 import com.utorrent.webapiwrapper.core.entities.*;
 import com.utorrent.webapiwrapper.restclient.ConnectionParams;
 import com.utorrent.webapiwrapper.restclient.RESTClient;
 import com.utorrent.webapiwrapper.restclient.Request;
 import com.utorrent.webapiwrapper.restclient.exceptions.BadRequestException;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.entity.ContentType;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 import static com.utorrent.webapiwrapper.core.Action.*;
 import static com.utorrent.webapiwrapper.core.entities.RequestResult.FAIL;
@@ -62,11 +61,8 @@ class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
             synchronized (this) {
                 if (token == null) {
                     token = client.get(serverURI.resolve("token.html"));
-                    if (nonNull(token)) {
-                        token = token.replaceAll("<[^>]*>", "");
-                    } else {
-                        throw new NullPointerException("Token received is null");
-                    }
+                    requireNonNull(token, "Token received is null");
+                    token = token.replaceAll("<[^>]*>", "");
                 }
             }
         }
@@ -74,18 +70,19 @@ class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
         return token;
     }
 
-    private <T> T invokeWithAuthentication(Supplier<T> responseSupplier, boolean retryIfAuthFailed) {
+    private <T> T invokeWithAuthentication(URIBuilder uriBuilder, Function<URI, T> responseSupplier, boolean retryIfAuthFailed) {
 
         try {
-            T response = responseSupplier.get();
+            uriBuilder.addParameter(TOKEN_PARAM_NAME, getAuthenticationToken());
+            T response = responseSupplier.apply(getURI(uriBuilder));
             requireNonNull(response, String.format("Received null response from server, request %s", responseSupplier));
             return response;
         } catch (BadRequestException e) {
             setTokenAsExpired();
             if (retryIfAuthFailed) {
-                return invokeWithAuthentication(responseSupplier, false);
+                return invokeWithAuthentication(uriBuilder, responseSupplier, false);
             } else {
-                throw new UTorrentAuthException("Impossible to connect to uTorrents, wrong username or password");
+                throw new UTorrentAuthException("Impossible to connect to uTorrents, wrong username or password", e);
             }
         }
     }
@@ -94,19 +91,19 @@ class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
     public RequestResult addTorrent(String url) {
         List<Request.QueryParam> params = new ArrayList<>();
         params.add(new Request.QueryParam(URL_PARAM_NAME, url));
-        String result = executeAction(ADD_URL, Collections.emptyList(), params);
+        String result = executeAction(ADD_URL, ImmutableList.of(), params);
         return getResult(result);
     }
 
     @Override
     public RequestResult addTorrent(File torrentFile) {
+
         URIBuilder uriBuilder = new URIBuilder(serverURI)
-                .addParameter(ACTION_QUERY_PARAM_NAME, ADD_FILE.getName())
-                .addParameter(TOKEN_PARAM_NAME, getAuthenticationToken());
-        Request request = Request.builder()
-                .addFile(TORRENT_FILE_PART_NAME, torrentFile, APPLICATION_X_BIT_TORRENT_CONTENT_TYPE)
-                .setDestination(getURI(uriBuilder)).create();
-        String stringResult = invokeWithAuthentication(() -> client.post(request), true);
+                .addParameter(ACTION_QUERY_PARAM_NAME, ADD_FILE.getName());
+        Request.RequestBuilder request = Request.builder()
+                .addFile(TORRENT_FILE_PART_NAME, torrentFile, APPLICATION_X_BIT_TORRENT_CONTENT_TYPE);
+
+        String stringResult = invokeWithAuthentication(uriBuilder, uri -> client.post(request.setDestination(uri).create()), true);
         return getResult(stringResult);
     }
 
@@ -118,14 +115,13 @@ class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
 
     private void updateTorrentCache() {
         URIBuilder requestBuilder = new URIBuilder(serverURI)
-                .addParameter(LIST_QUERY_PARAM_NAME, "1")
-                .addParameter(TOKEN_PARAM_NAME, getAuthenticationToken());
+                .addParameter(LIST_QUERY_PARAM_NAME, "1");
 
         if (nonNull(torrentsCache.getCachedID())) {
             requestBuilder.addParameter(CACHE_ID_QUERY_PARAM, torrentsCache.getCachedID());
         }
 
-        String jsonTorrentSnapshotMessage = invokeWithAuthentication(() -> client.get(getURI(requestBuilder)), true);
+        String jsonTorrentSnapshotMessage = invokeWithAuthentication(requestBuilder, client::get, true);
         torrentsCache.updateCache(messageParser.parseAsTorrentListSnapshot(jsonTorrentSnapshotMessage));
     }
 
@@ -137,13 +133,13 @@ class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
 
     @Override
     public TorrentFileList getTorrentFiles(List<String> torrentHashes) {
-        String torrentFilesJsonMessage = executeAction(GET_FILES, torrentHashes, Collections.emptyList());
+        String torrentFilesJsonMessage = executeAction(GET_FILES, torrentHashes, ImmutableList.of());
         return messageParser.parseAsTorrentFileList(torrentFilesJsonMessage);
     }
 
     @Override
     public TorrentProperties getTorrentProperties(List<String> torrentHash) {
-        String jsonTorrentPropertiesMessage = executeAction(GET_PROP, Collections.unmodifiableList(torrentHash), Collections.emptyList());
+        String jsonTorrentPropertiesMessage = executeAction(GET_PROP, ImmutableList.copyOf(torrentHash), ImmutableList.of());
         return messageParser.parseAsTorrentProperties(jsonTorrentPropertiesMessage);
     }
 
@@ -193,7 +189,7 @@ class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
         List<Request.QueryParam> params = new ArrayList<>();
         params.add(new Request.QueryParam(PRIORITY_QUERY_PARAM_NAME, String.valueOf(priority.getValue())));
         fileIndices.forEach(index -> params.add(new Request.QueryParam(FILE_INDEX_QUERY_PARAM_NAME, String.valueOf(index))));
-        return getResult(executeAction(SET_PRIORITY, Collections.singletonList(hash), params));
+        return getResult(executeAction(SET_PRIORITY, ImmutableList.of(hash), params));
     }
 
     @Override
@@ -203,12 +199,12 @@ class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
 
     @Override
     public RequestResult setClientSetting(String settingName, String settingValue) {
-        return setClientSetting(Collections.singletonList(new Request.QueryParam(settingName, settingValue)));
+        return setClientSetting(ImmutableList.of(new Request.QueryParam(settingName, settingValue)));
     }
 
     @Override
     public RequestResult setClientSetting(List<Request.QueryParam> settings) {
-        return getResult(executeAction(SET_SETTING, Collections.emptyList(), settings));
+        return getResult(executeAction(SET_SETTING, ImmutableList.of(), settings));
     }
 
     @Override
@@ -218,11 +214,11 @@ class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
     }
 
     private RequestResult executeBaseTorrentAction(Action action, List<String> hashes) {
-        return getResult(executeAction(action, hashes, Collections.emptyList()));
+        return getResult(executeAction(action, hashes, ImmutableList.of()));
     }
 
     private String executeAction(Action action) {
-        return executeAction(action, Collections.emptyList(), Collections.emptyList());
+        return executeAction(action, ImmutableList.of(), ImmutableList.of());
     }
 
     private String executeAction(Action action, List<String> torrentHashes, List<Request.QueryParam> queryParams) {
@@ -230,8 +226,7 @@ class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
                 .addParameter(ACTION_QUERY_PARAM_NAME, action.getName());
         queryParams.forEach(param -> requestBuilder.addParameter(param.getName(), param.getValue()));
         torrentHashes.forEach(hash -> requestBuilder.addParameter(HASH_QUERY_PARAM_NAME, hash));
-        requestBuilder.addParameter(TOKEN_PARAM_NAME, getAuthenticationToken());
-        return invokeWithAuthentication(() -> client.get(getURI(requestBuilder)), true);
+        return invokeWithAuthentication(requestBuilder, client::get, true);
     }
 
     private void setTokenAsExpired() {

@@ -56,7 +56,7 @@ public class RESTClient implements Closeable {
     }
 
     public String post(Request request) {
-        Objects.requireNonNull(request, "Request cannot be null");
+        requireNonNull(request, "Request cannot be null");
 
         MultipartEntityBuilder httpEntityBuilder = MultipartEntityBuilder.create()
                 .setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
