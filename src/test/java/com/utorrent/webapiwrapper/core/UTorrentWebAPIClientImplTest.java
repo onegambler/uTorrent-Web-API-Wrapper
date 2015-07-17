@@ -125,49 +125,29 @@ public class UTorrentWebAPIClientImplTest {
 
     @Test
     public void testGetTorrentList() throws Exception {
-        when(restClient.get(any(Request.class))).thenReturn(BUILD_STRING);
         TorrentListSnapshot torrentListSnapshot = new TorrentListSnapshot();
-        Torrent firstTorrent = Torrent.builder().hash("hash_1").build();
-        Torrent secondTorrent = Torrent.builder().hash("hash_2").build();
-        torrentListSnapshot.addTorrentToAdd(firstTorrent);
-        torrentListSnapshot.addTorrentToAdd(secondTorrent);
         when(parser.parseAsTorrentListSnapshot(anyString())).thenReturn(torrentListSnapshot);
+        when(restClient.get(any(Request.class))).thenReturn(TOKEN_VALUE);
+        client.getTorrentList();
+
+        ArgumentCaptor<Request> argumentCaptor = ArgumentCaptor.forClass(Request.class);
+        when(restClient.get(argumentCaptor.capture())).thenReturn(BUILD_STRING);
+        client.getTorrentList();
+
+        Request requestToValidate = argumentCaptor.getValue();
+        assertThat(requestToValidate).isNotNull();
+
+        ImmutableList<QueryParam> queryParamsToCompare = ImmutableList.<QueryParam>builder()
+                .add(new QueryParam(UTorrentWebAPIClientImpl.TOKEN_PARAM_NAME, TOKEN_VALUE))
+                .add(new QueryParam(UTorrentWebAPIClientImpl.LIST_QUERY_PARAM_NAME, "1"))
+                .build();
+
+        assertThat(requestToValidate.getUri()).isEqualTo(serverURI);
+        assertThat(requestToValidate.getParams()).hasSameElementsAs(queryParamsToCompare);
 
         Set<Torrent> torrentList = client.getTorrentList();
-        assertThat(torrentList).containsOnly(firstTorrent, secondTorrent);
+        assertThat(torrentList).isEmpty();
 
-        torrentListSnapshot.getTorrentsToAdd().clear();
-        torrentListSnapshot.addTorrentToDelete(secondTorrent.getHash());
-        torrentList = client.getTorrentList();
-        assertThat(torrentList).containsOnly(firstTorrent);
-
-        torrentListSnapshot.getTorrentsToAdd().clear();
-        torrentListSnapshot.getTorrentToRemoveHashes().clear();
-        torrentListSnapshot.addTorrentToAdd(secondTorrent);
-        Torrent thirdTorrent = Torrent.builder().hash(HASH_3).build();
-        torrentListSnapshot.addTorrentToAdd(thirdTorrent);
-        torrentListSnapshot.addTorrentToDelete(firstTorrent.getHash());
-
-        torrentList = client.getTorrentList();
-        assertThat(torrentList).containsOnly(secondTorrent, thirdTorrent);
-
-    }
-
-    @Test
-    public void testGetTorrent() throws Exception {
-        String hashFirstTorrent = HASH_1;
-        Torrent firstTorrent = Torrent.builder().hash(hashFirstTorrent).build();
-        String hashSecondTorrent = HASH_2;
-        Torrent secondTorrent = Torrent.builder().hash(hashSecondTorrent).build();
-        when(restClient.get(any(Request.class))).thenReturn(BUILD_STRING);
-
-        TorrentListSnapshot torrentListSnapshot = new TorrentListSnapshot();
-        torrentListSnapshot.addTorrentToAdd(firstTorrent);
-        torrentListSnapshot.addTorrentToAdd(secondTorrent);
-        when(parser.parseAsTorrentListSnapshot(anyString())).thenReturn(torrentListSnapshot);
-
-        assertThat(client.getTorrent(hashFirstTorrent)).isEqualTo(firstTorrent);
-        assertThat(client.getTorrent(hashSecondTorrent)).isEqualTo(secondTorrent);
     }
 
     @Test
@@ -354,7 +334,5 @@ public class UTorrentWebAPIClientImplTest {
 
     public static final String TOKEN_VALUE = "token";
     public static final String HASH_1 = "hash_1";
-    public static final String HASH_2 = "hash_2";
     public static final String BUILD_STRING = "build";
-    public static final String HASH_3 = "hash_3";
 }

@@ -30,6 +30,7 @@ public class SettingTypeTest {
         assertFalse(settingType.isValueValid(new Object()));
     }
 
+    @Test
     public void testIsValueValidInteger() throws Exception {
         ClientSettings.SettingType settingType = ClientSettings.SettingType.INTEGER;
         assertTrue(settingType.isValueValid(1));
@@ -39,9 +40,25 @@ public class SettingTypeTest {
         assertFalse(settingType.isValueValid("ciao"));
         assertFalse(settingType.isValueValid("12.4"));
         assertFalse(settingType.isValueValid(new Object()));
-        assertFalse(settingType.isValueValid(125l));
+        assertTrue(settingType.isValueValid(125l));
         assertFalse(settingType.isValueValid(125d));
         assertFalse(settingType.isValueValid("12a"));
         assertFalse(settingType.isValueValid("a12"));
+    }
+
+    @Test
+    public void testIsValueValidString() throws Exception {
+        ClientSettings.SettingType settingType = ClientSettings.SettingType.STRING;
+        assertTrue(settingType.isValueValid(1));
+        assertTrue(settingType.isValueValid(12));
+        assertTrue(settingType.isValueValid("15"));
+        assertTrue(settingType.isValueValid("123"));
+        assertTrue(settingType.isValueValid("ciao"));
+        assertTrue(settingType.isValueValid("12.4"));
+        assertTrue(settingType.isValueValid(new Object()));
+        assertTrue(settingType.isValueValid(125l));
+        assertTrue(settingType.isValueValid(125d));
+        assertTrue(settingType.isValueValid("12a"));
+        assertTrue(settingType.isValueValid("a12"));
     }
 }

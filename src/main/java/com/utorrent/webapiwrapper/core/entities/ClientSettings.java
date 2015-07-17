@@ -69,7 +69,7 @@ public class ClientSettings {
                 case BOOLEAN:
                     return stringValue.equalsIgnoreCase("true") || stringValue.equalsIgnoreCase("false");
                 case INTEGER:
-                    return stringValue.matches("\\d");
+                    return stringValue.matches("\\d+");
                 default:
                     return true;
             }
