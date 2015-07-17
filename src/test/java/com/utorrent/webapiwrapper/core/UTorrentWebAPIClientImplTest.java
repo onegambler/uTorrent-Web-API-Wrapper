@@ -160,10 +160,12 @@ public class UTorrentWebAPIClientImplTest {
         String hashSecondTorrent = HASH_2;
         Torrent secondTorrent = Torrent.builder().hash(hashSecondTorrent).build();
         when(restClient.get(any(Request.class))).thenReturn(BUILD_STRING);
+
         TorrentListSnapshot torrentListSnapshot = new TorrentListSnapshot();
         torrentListSnapshot.addTorrentToAdd(firstTorrent);
         torrentListSnapshot.addTorrentToAdd(secondTorrent);
         when(parser.parseAsTorrentListSnapshot(anyString())).thenReturn(torrentListSnapshot);
+
         assertThat(client.getTorrent(hashFirstTorrent)).isEqualTo(firstTorrent);
         assertThat(client.getTorrent(hashSecondTorrent)).isEqualTo(secondTorrent);
     }
@@ -192,7 +194,7 @@ public class UTorrentWebAPIClientImplTest {
         Request actualRequest = requestArgumentCaptor.getValue();
         validateRequest(Action.GET_FILES, actualRequest, ImmutableList.of(expectedHash));
 
-        assertThat(result).isEqualTo(torrentFileList);
+        assertThat(result).isSameAs(torrentFileList);
         verify(restClient, times(3)).get(any());
     }
 
@@ -210,7 +212,7 @@ public class UTorrentWebAPIClientImplTest {
         Request actualRequest = requestArgumentCaptor.getValue();
         validateRequest(Action.GET_PROP, actualRequest, ImmutableList.of(new QueryParam(UTorrentWebAPIClientImpl.HASH_QUERY_PARAM_NAME, HASH_1)));
 
-        assertThat(actualTorrentProperties).isEqualTo(torrentPropertiesExpected);
+        assertThat(actualTorrentProperties).isSameAs(torrentPropertiesExpected);
         verify(restClient, times(3)).get(any());
 
     }
@@ -280,6 +282,23 @@ public class UTorrentWebAPIClientImplTest {
         validateRequest(Action.SET_PRIORITY, actualRequest, queryParams);
 
         verify(restClient, times(3)).get(any());
+    }
+
+    @Test
+    public void testGetClientSetting() {
+        when(restClient.get(any(Request.class))).thenReturn(TOKEN_VALUE);
+        client.getClientSettings();
+
+        ClientSettings expectedClientSettings = new ClientSettings();
+
+        ArgumentCaptor<Request> requestArgumentCaptor = ArgumentCaptor.forClass(Request.class);
+        when(restClient.get(requestArgumentCaptor.capture())).thenReturn(BUILD_STRING);
+        when(parser.parseAsClientSettings(BUILD_STRING)).thenReturn(expectedClientSettings);
+
+        ClientSettings actualClientSettings = client.getClientSettings();
+        assertThat(actualClientSettings).isSameAs(expectedClientSettings);
+
+        validateRequest(Action.GET_SETTINGS, requestArgumentCaptor.getValue(), ImmutableList.of());
     }
 
     @Test

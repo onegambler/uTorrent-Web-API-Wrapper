@@ -1,5 +1,6 @@
 package com.utorrent.webapiwrapper.core;
 
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.utorrent.webapiwrapper.core.entities.*;
 import com.utorrent.webapiwrapper.restclient.ConnectionParams;
@@ -47,12 +48,18 @@ class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
 
     public UTorrentWebAPIClientImpl(RESTClient client, ConnectionParams connectionParams, MessageParser messageParser) {
         this.client = client;
-        URIBuilder uriBuilder = new URIBuilder()
-                .setScheme(connectionParams.getScheme())
-                .setHost(connectionParams.getHost())
-                .setPort(connectionParams.getPort())
-                .setPath("/gui/");
-        this.serverURI = getURI(uriBuilder);
+        URI uri = null;
+        try {
+            uri = new URIBuilder()
+                    .setScheme(connectionParams.getScheme())
+                    .setHost(connectionParams.getHost())
+                    .setPort(connectionParams.getPort())
+                    .setPath("/gui/").build();
+        } catch (URISyntaxException e) {
+            Throwables.propagate(e);
+        }
+
+        this.serverURI = uri;
         this.messageParser = messageParser;
         torrentsCache = new TorrentsCache();
     }
@@ -242,14 +249,6 @@ class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
     @Override
     public void close() throws IOException {
         this.client.close();
-    }
-
-    private URI getURI(URIBuilder requestBuilder) {
-        try {
-            return requestBuilder.build();
-        } catch (URISyntaxException e) {
-            throw new RuntimeException("URISyntaxException occurred!", e);
-        }
     }
 
     private RequestResult getResult(String result) {
