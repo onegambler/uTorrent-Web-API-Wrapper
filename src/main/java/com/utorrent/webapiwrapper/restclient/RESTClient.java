@@ -1,5 +1,6 @@
 package com.utorrent.webapiwrapper.restclient;
 
+import com.google.common.base.Throwables;
 import com.utorrent.webapiwrapper.restclient.exceptions.*;
 import com.utorrent.webapiwrapper.utils.IOUtils;
 import org.apache.http.HttpResponse;
@@ -11,6 +12,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
@@ -21,6 +23,7 @@ import org.apache.http.impl.client.HttpClients;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Objects;
 
 import static java.util.Objects.requireNonNull;
@@ -31,8 +34,11 @@ public class RESTClient implements Closeable {
     private final HttpClientContext httpClientContext;
     private final RequestConfig requestConfig;
 
-    public RESTClient(ConnectionParams params) {
+    public RESTClient(CloseableHttpClient client, ConnectionParams params) {
         requireNonNull(params, "Connection Parameters cannot be null");
+        requireNonNull(client, "Client cannot be null");
+
+        this.client = client;
 
         this.httpClientContext = HttpClientContext.create();
         if (params.getCredentials().isPresent()) {
@@ -52,7 +58,10 @@ public class RESTClient implements Closeable {
         }
 
         requestConfig = requestConfigBuilder.build();
-        client = HttpClients.createDefault();
+    }
+
+    public RESTClient(ConnectionParams params) {
+        this(HttpClients.createDefault(), params);
     }
 
     public String post(Request request) {
@@ -73,10 +82,20 @@ public class RESTClient implements Closeable {
     }
 
     public String get(Request request) {
-        HttpUriRequest httpUriRequest = RequestBuilder.get()
-                .setUri(request.getUri())
-                .setConfig(requestConfig)
-                .build();
+
+        URIBuilder uriBuilder = new URIBuilder(request.getUri());
+        request.getParams().forEach(param -> uriBuilder.addParameter(param.getName(), param.getValue()));
+        HttpUriRequest httpUriRequest = null;
+
+        try {
+            httpUriRequest = RequestBuilder.get()
+                    .setUri(uriBuilder.build())
+                    .setConfig(requestConfig)
+                    .build();
+        } catch (URISyntaxException e) {
+            Throwables.propagate(e);
+        }
+
         return executeVerb(httpUriRequest);
     }
 

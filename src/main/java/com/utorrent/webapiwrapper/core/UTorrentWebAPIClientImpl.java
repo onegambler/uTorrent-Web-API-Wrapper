@@ -5,6 +5,7 @@ import com.utorrent.webapiwrapper.core.entities.*;
 import com.utorrent.webapiwrapper.restclient.ConnectionParams;
 import com.utorrent.webapiwrapper.restclient.RESTClient;
 import com.utorrent.webapiwrapper.restclient.Request;
+import com.utorrent.webapiwrapper.restclient.Request.RequestBuilder;
 import com.utorrent.webapiwrapper.restclient.exceptions.BadRequestException;
 import org.apache.http.client.utils.URIBuilder;
 
@@ -25,15 +26,15 @@ import static java.util.Objects.requireNonNull;
 
 class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
 
-    private static final String ACTION_QUERY_PARAM_NAME = "action";
-    private static final String TOKEN_PARAM_NAME = "token";
-    private static final String URL_PARAM_NAME = "s";
-    private static final String LIST_QUERY_PARAM_NAME = "list";
-    private static final String CACHE_ID_QUERY_PARAM = "cid";
-    private static final String HASH_QUERY_PARAM_NAME = "hash";
-    private static final String FILE_INDEX_QUERY_PARAM_NAME = "f";
-    private static final String PRIORITY_QUERY_PARAM_NAME = "p";
-    private static final String TORRENT_FILE_PART_NAME = "torrent_file";
+    static final String ACTION_QUERY_PARAM_NAME = "action";
+    static final String TOKEN_PARAM_NAME = "token";
+    static final String URL_PARAM_NAME = "s";
+    static final String LIST_QUERY_PARAM_NAME = "list";
+    static final String CACHE_ID_QUERY_PARAM = "cid";
+    static final String HASH_QUERY_PARAM_NAME = "hash";
+    static final String FILE_INDEX_QUERY_PARAM_NAME = "f";
+    static final String PRIORITY_QUERY_PARAM_NAME = "p";
+    static final String TORRENT_FILE_PART_NAME = "torrent_file";
 
     private final RESTClient client;
     private final TorrentsCache torrentsCache;
@@ -73,17 +74,17 @@ class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
         return token;
     }
 
-    private <T> T invokeWithAuthentication(URIBuilder uriBuilder, Function<URI, T> responseSupplier, boolean retryIfAuthFailed) {
+    private <T> T invokeWithAuthentication(RequestBuilder requestBuilder, Function<Request, T> responseSupplier, boolean retryIfAuthFailed) {
 
         try {
-            uriBuilder.addParameter(TOKEN_PARAM_NAME, getAuthenticationToken());
-            T response = responseSupplier.apply(getURI(uriBuilder));
+            requestBuilder.addQueryParameter(TOKEN_PARAM_NAME, getAuthenticationToken());
+            T response = responseSupplier.apply(requestBuilder.create());
             requireNonNull(response, String.format("Received null response from server, request %s", responseSupplier));
             return response;
         } catch (BadRequestException e) {
             setTokenAsExpired();
             if (retryIfAuthFailed) {
-                return invokeWithAuthentication(uriBuilder, responseSupplier, false);
+                return invokeWithAuthentication(requestBuilder, responseSupplier, false);
             } else {
                 throw new UTorrentAuthException("Impossible to connect to uTorrents, wrong username or password", e);
             }
@@ -101,12 +102,12 @@ class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
     @Override
     public RequestResult addTorrent(File torrentFile) {
 
-        URIBuilder uriBuilder = new URIBuilder(serverURI)
-                .addParameter(ACTION_QUERY_PARAM_NAME, ADD_FILE.getName());
-        Request.RequestBuilder request = Request.builder()
+        RequestBuilder requestBuilder = Request.builder()
+                .setDestination(serverURI)
+                .addQueryParameter(ACTION_QUERY_PARAM_NAME, ADD_FILE.getName())
                 .addFile(TORRENT_FILE_PART_NAME, torrentFile, APPLICATION_X_BIT_TORRENT_CONTENT_TYPE);
 
-        String stringResult = invokeWithAuthentication(uriBuilder, uri -> client.post(request.setDestination(uri).create()), true);
+        String stringResult = invokeWithAuthentication(requestBuilder, client::post, true);
         return getResult(stringResult);
     }
 
@@ -117,14 +118,15 @@ class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
     }
 
     private void updateTorrentCache() {
-        URIBuilder requestBuilder = new URIBuilder(serverURI)
-                .addParameter(LIST_QUERY_PARAM_NAME, "1");
+        RequestBuilder requestBuilder = Request.builder()
+                .setDestination(serverURI)
+                .addQueryParameter(LIST_QUERY_PARAM_NAME, "1");
 
         if (nonNull(torrentsCache.getCachedID())) {
-            requestBuilder.addParameter(CACHE_ID_QUERY_PARAM, torrentsCache.getCachedID());
+            requestBuilder.addQueryParameter(CACHE_ID_QUERY_PARAM, torrentsCache.getCachedID());
         }
 
-        String jsonTorrentSnapshotMessage = invokeWithAuthentication(requestBuilder, uri -> client.get(Request.builder().setDestination(uri).create()), true);
+        String jsonTorrentSnapshotMessage = invokeWithAuthentication(requestBuilder, client::get, true);
         torrentsCache.updateCache(messageParser.parseAsTorrentListSnapshot(jsonTorrentSnapshotMessage));
     }
 
@@ -225,11 +227,12 @@ class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
     }
 
     private String executeAction(Action action, List<String> torrentHashes, List<Request.QueryParam> queryParams) {
-        URIBuilder requestBuilder = new URIBuilder(serverURI)
-                .addParameter(ACTION_QUERY_PARAM_NAME, action.getName());
-        queryParams.forEach(param -> requestBuilder.addParameter(param.getName(), param.getValue()));
-        torrentHashes.forEach(hash -> requestBuilder.addParameter(HASH_QUERY_PARAM_NAME, hash));
-        return invokeWithAuthentication(requestBuilder, uri -> client.get(Request.builder().setDestination(uri).create()), true);
+        RequestBuilder requestBuilder = Request.builder().setDestination(serverURI)
+                .addQueryParameter(ACTION_QUERY_PARAM_NAME, action.getName());
+
+        queryParams.forEach(param -> requestBuilder.addQueryParameter(param.getName(), param.getValue()));
+        torrentHashes.forEach(hash -> requestBuilder.addQueryParameter(HASH_QUERY_PARAM_NAME, hash));
+        return invokeWithAuthentication(requestBuilder, client::get, true);
     }
 
     private void setTokenAsExpired() {
