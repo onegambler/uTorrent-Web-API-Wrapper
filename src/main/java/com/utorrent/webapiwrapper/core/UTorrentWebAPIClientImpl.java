@@ -46,7 +46,7 @@ class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
     private String token;
 
 
-    public UTorrentWebAPIClientImpl(RESTClient client, ConnectionParams connectionParams, MessageParser messageParser) {
+    UTorrentWebAPIClientImpl(RESTClient client, ConnectionParams connectionParams, MessageParser messageParser) {
         this.client = client;
         URI uri = null;
         try {
@@ -119,7 +119,7 @@ class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
     }
 
     @Override
-    public Set<Torrent> getTorrentList() {
+    public Set<Torrent> getAllTorrents() {
         updateTorrentCache();
         return torrentsCache.getTorrentList();
     }

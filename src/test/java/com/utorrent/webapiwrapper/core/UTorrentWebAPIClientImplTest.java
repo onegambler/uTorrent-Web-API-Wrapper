@@ -128,11 +128,11 @@ public class UTorrentWebAPIClientImplTest {
         TorrentListSnapshot torrentListSnapshot = new TorrentListSnapshot();
         when(parser.parseAsTorrentListSnapshot(anyString())).thenReturn(torrentListSnapshot);
         when(restClient.get(any(Request.class))).thenReturn(TOKEN_VALUE);
-        client.getTorrentList();
+        client.getAllTorrents();
 
         ArgumentCaptor<Request> argumentCaptor = ArgumentCaptor.forClass(Request.class);
         when(restClient.get(argumentCaptor.capture())).thenReturn(BUILD_STRING);
-        client.getTorrentList();
+        client.getAllTorrents();
 
         Request requestToValidate = argumentCaptor.getValue();
         assertThat(requestToValidate).isNotNull();
@@ -145,7 +145,7 @@ public class UTorrentWebAPIClientImplTest {
         assertThat(requestToValidate.getUri()).isEqualTo(serverURI);
         assertThat(requestToValidate.getParams()).hasSameElementsAs(queryParamsToCompare);
 
-        Set<Torrent> torrentList = client.getTorrentList();
+        Set<Torrent> torrentList = client.getAllTorrents();
         assertThat(torrentList).isEmpty();
 
     }

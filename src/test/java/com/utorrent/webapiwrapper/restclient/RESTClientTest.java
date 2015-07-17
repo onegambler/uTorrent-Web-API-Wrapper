@@ -1,12 +1,11 @@
 package com.utorrent.webapiwrapper.restclient;
 
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-
-import static org.junit.Assert.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RESTClientTest {
@@ -14,18 +13,36 @@ public class RESTClientTest {
     @Mock
     private CloseableHttpClient httpClient;
 
+    private final ConnectionParams connectionParams = ConnectionParams.builder()
+            .withScheme("http")
+            .withCredentials("username", "password")
+            .withAddress("host.com", 8080)
+            .withTimeout(1500)
+            .create();
+
+
     private RESTClient client;
+
+    @Before
+    public void setUp() {
+        client = new RESTClient(httpClient, connectionParams);
+    }
 
 
     @Test(expected = NullPointerException.class)
-    public void testPostNullRequest() throws Exception {
+    public void whenRequestIsNullThenPostThrowException() throws Exception {
         client.post(null);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void whenRequestIsNullThenGetThrowException() throws Exception {
+        client.get(null);
     }
 
     @Test
     public void testPost() throws Exception {
-        //client.post();
-
+        Request request = Request.builder().create();
+        String result = client.post(request);
     }
 
     @Test
