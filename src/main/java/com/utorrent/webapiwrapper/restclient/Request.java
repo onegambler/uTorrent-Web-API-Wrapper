@@ -65,18 +65,8 @@ public class Request {
             return this;
         }
 
-        public RequestBuilder setDestination(URIBuilder uriBuilder) {
-            this.uriBuilder = uriBuilder;
-            return this;
-        }
-
         public RequestBuilder setDestination(URI uri) {
             this.uriBuilder = new URIBuilder(uri);
-            return this;
-        }
-
-        public RequestBuilder setDestination(String path) {
-            this.uriBuilder = new URIBuilder(URI.create(path));
             return this;
         }
 
