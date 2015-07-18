@@ -8,6 +8,13 @@ import com.utorrent.webapiwrapper.core.entities.TorrentProperties.State;
 
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.temporal.TemporalUnit;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 public class MessageParser {
 
@@ -44,7 +51,8 @@ public class MessageParser {
     }
 
     private Torrent parseAsTorrent(JsonArray jsonTorrentMessage) {
-        return Torrent.builder()
+
+        Torrent.TorrentBuilder torrentBuilder = Torrent.builder()
                 .hash(jsonTorrentMessage.get(0).getAsString())
                 .statuses(TorrentStatus.decodeStatus(jsonTorrentMessage.get(1).getAsInt()))
                 .name(jsonTorrentMessage.get(2).getAsString())
@@ -52,7 +60,7 @@ public class MessageParser {
                 .progress(jsonTorrentMessage.get(4).getAsLong() / 10)
                 .downloaded(jsonTorrentMessage.get(5).getAsLong())
                 .uploaded(jsonTorrentMessage.get(6).getAsLong())
-                .ratio(jsonTorrentMessage.get(7).getAsLong())
+                .ratio(jsonTorrentMessage.get(7).getAsFloat() / 1000)
                 .uploadSpeed(jsonTorrentMessage.get(8).getAsLong())
                 .downloadSpeed(jsonTorrentMessage.get(9).getAsLong())
                 .eta(Duration.ofSeconds(jsonTorrentMessage.get(10).getAsLong()))
@@ -63,30 +71,59 @@ public class MessageParser {
                 .seedsInSwarm(jsonTorrentMessage.get(15).getAsInt())
                 .availability(jsonTorrentMessage.get(16).getAsLong())
                 .torrentQueueOrder(jsonTorrentMessage.get(17).getAsLong())
-                .remaining(jsonTorrentMessage.get(5).getAsLong())
-                .path(Paths.get(jsonTorrentMessage.get(2).getAsString())).build();
+                .remaining(jsonTorrentMessage.get(18).getAsLong())
+                .statusInString(jsonTorrentMessage.get(21).getAsString())
+                .torrentNumber(jsonTorrentMessage.get(22).getAsInt())
+                .dateAdded(Instant.ofEpochSecond(jsonTorrentMessage.get(23).getAsLong()));
+
+        if (jsonTorrentMessage.get(24).getAsLong() > 0) {
+            torrentBuilder.dateCompleted(Instant.ofEpochSecond(jsonTorrentMessage.get(24).getAsLong()));
+        }
+
+        torrentBuilder.path(Paths.get(jsonTorrentMessage.get(26).getAsString()));
+
+        return torrentBuilder.build();
+
     }
 
-    public TorrentFileList parseAsTorrentFileList(String jsonMessage) {
+    public Set<TorrentFileList> parseAsTorrentFileList(String jsonMessage) {
         JsonObject jsonFileList = jsonParser.fromJson(jsonMessage, JsonObject.class);
         JsonArray array = jsonFileList.getAsJsonArray("files");
-        TorrentFileList torrentFile = new TorrentFileList();
-        if (array != null) {
-            torrentFile.setHash(array.get(0).getAsString());
-            for (JsonElement torrentJson : array.get(1).getAsJsonArray()) {
-                torrentFile.addFile(getTorrentFile(torrentJson.getAsJsonArray()));
+        Set<TorrentFileList> torrentFiles = new HashSet<>();
+
+        for (int i = 0; i < array.getAsJsonArray().size(); i++) {
+
+            JsonArray files = array.getAsJsonArray();
+
+            TorrentFileList torrentFile = new TorrentFileList();
+            if (files != null) {
+                torrentFile.setHash(files.get(i).getAsString());
+                i++;
+                for (JsonElement torrentJson : files.get(i).getAsJsonArray()) {
+                    torrentFile.addFile(getTorrentFile(torrentJson.getAsJsonArray()));
+                }
             }
+            torrentFiles.add(torrentFile);
+
         }
-        return torrentFile;
+
+        return torrentFiles;
 
     }
 
     private File getTorrentFile(JsonArray torrentJson) {
         return File.builder()
                 .name(torrentJson.get(0).getAsString())
-                .size(torrentJson.get(1).getAsInt())
-                .downloaded(torrentJson.get(2).getAsInt())
+                .size(torrentJson.get(1).getAsLong())
+                .downloaded(torrentJson.get(2).getAsLong())
                 .priority(Priority.getPriority(torrentJson.get(3).getAsInt()))
+                .startingPart(torrentJson.get(4).getAsLong())
+                .numberOfParts(torrentJson.get(5).getAsLong())
+                .streamable(torrentJson.get(6).getAsBoolean())
+                .videoSpeed(torrentJson.get(7).getAsLong())
+                .streamDuration(Duration.ofSeconds(torrentJson.get(7).getAsLong()))
+                .videoWidth(torrentJson.get(9).getAsLong())
+                .videoHeight(torrentJson.get(10).getAsLong())
                 .build();
     }
 
@@ -106,20 +143,31 @@ public class MessageParser {
         return settings;
     }
 
-    public TorrentProperties parseAsTorrentProperties(String jsonMessage) {
-        JsonObject jsonTorrentSettings = jsonParser.fromJson(jsonMessage, JsonObject.class).get("props").getAsJsonArray().get(0).getAsJsonObject();
-        return TorrentProperties.builder()
-                .hash(jsonTorrentSettings.get("hash").getAsString())
-                .trackers(jsonTorrentSettings.get("trackers").getAsString().split("\\r\\n"))
-                .uploadRate(jsonTorrentSettings.get("ulrate").getAsInt())
-                .downloadRate(jsonTorrentSettings.get("dlrate").getAsInt())
-                .superSeed(State.getStateByValue(jsonTorrentSettings.get("superseed").getAsInt()))
-                .useDHT(State.getStateByValue(jsonTorrentSettings.get("dht").getAsInt()))
-                .usePEX(State.getStateByValue(jsonTorrentSettings.get("pex").getAsInt()))
-                .seedOverride(State.getStateByValue(jsonTorrentSettings.get("seed_override").getAsInt()))
-                .seedRatio(jsonTorrentSettings.get("seed_ratio").getAsInt())
-                .seedTime(Duration.ofSeconds(jsonTorrentSettings.get("seed_time").getAsInt()))
-                .uploadSlots(jsonTorrentSettings.get("ulslots").getAsInt())
-                .build();
+    public Set<TorrentProperties> parseAsTorrentProperties(String jsonMessage) {
+        JsonArray jsonTorrentSettings = jsonParser.fromJson(jsonMessage, JsonObject.class).get("props").getAsJsonArray();
+
+        Set<TorrentProperties> properties = new HashSet<>();
+
+        for (JsonElement element : jsonTorrentSettings) {
+            JsonObject object = element.getAsJsonObject();
+
+            TorrentProperties property = TorrentProperties.builder()
+                    .hash(object.get("hash").getAsString())
+                    .trackers(object.get("trackers").getAsString().split("\\r\\n"))
+                    .uploadRate(object.get("ulrate").getAsInt())
+                    .downloadRate(object.get("dlrate").getAsInt())
+                    .superSeed(State.getStateByValue(object.get("superseed").getAsInt()))
+                    .useDHT(State.getStateByValue(object.get("dht").getAsInt()))
+                    .usePEX(State.getStateByValue(object.get("pex").getAsInt()))
+                    .seedOverride(State.getStateByValue(object.get("seed_override").getAsInt()))
+                    .seedRatio(object.get("seed_ratio").getAsInt())
+                    .seedTime(Duration.ofSeconds(object.get("seed_time").getAsInt()))
+                    .uploadSlots(object.get("ulslots").getAsInt())
+                    .build();
+
+            properties.add(property);
+        }
+
+        return properties;
     }
 }

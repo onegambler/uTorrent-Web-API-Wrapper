@@ -1,13 +1,19 @@
 package com.utorrent.webapiwrapper.core;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.gson.JsonSyntaxException;
 import com.utorrent.webapiwrapper.core.entities.*;
 import com.utorrent.webapiwrapper.utils.IOUtils;
 import org.junit.Test;
 
 import java.io.InputStream;
+import java.math.BigInteger;
 import java.time.Duration;
-
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 
 import static java.util.Objects.requireNonNull;
@@ -15,18 +21,24 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class MessageParserTest {
 
-    private final String HASH = "HASH";
+    private final String HASH_1 = "HASH_1";
+    private final String HASH_2 = "HASH_2";
 
     private final MessageParser messageParser = new MessageParser();
 
     @Test
     public void whenJSONMessageIsPassedThenParseItAsTorrentFileListSnapshot() throws Exception {
 
-        TorrentFileList torrentFileList = messageParser.parseAsTorrentFileList(getTestMessage("com/utorrent/webapiwrapper/core/torrent.list.json"));
-        assertThat(torrentFileList.getHash()).isEqualTo(HASH);
-        assertThat(torrentFileList.getFiles()).hasSize(2);
-        AssertEntities.assertEquals(torrentFileList.getFiles().get(0), "File_1", 1024, 27, Priority.NORMAL_PRIORITY);
-        AssertEntities.assertEquals(torrentFileList.getFiles().get(1), "File_2", 2048, 54, Priority.DO_NOT_DOWNLOAD);
+        Set<TorrentFileList> torrentFileLists = messageParser.parseAsTorrentFileList(getTestMessage("com/utorrent/webapiwrapper/core/torrent.list.json"));
+
+        List<String> hashesList = torrentFileLists.stream().map(TorrentFileList::getHash).collect(Collectors.toList());
+        assertThat(hashesList).containsOnly(HASH_1, HASH_2);
+
+        for(TorrentFileList torrentFileList : torrentFileLists) {
+            assertThat(torrentFileList.getFiles()).hasSize(2);
+            AssertEntities.assertEquals(torrentFileList.getFiles().get(0), "File_1", 3899654144l, 0, Priority.NORMAL_PRIORITY, 0, 1050);
+            AssertEntities.assertEquals(torrentFileList.getFiles().get(1), "File_2", 112, 0, Priority.DO_NOT_DOWNLOAD, 1049, 1);
+        }
     }
 
     @Test(expected = JsonSyntaxException.class)
@@ -61,19 +73,24 @@ public class MessageParserTest {
     @Test
     public void whenJSONMessageIsPassedThenParseItAsTorrentProperties() throws Exception {
         String message = getTestMessage("com/utorrent/webapiwrapper/core/torrent.properties.json");
-        TorrentProperties properties = messageParser.parseAsTorrentProperties(message);
+        Set<TorrentProperties> properties = messageParser.parseAsTorrentProperties(message);
         assertThat(properties).isNotNull();
-        assertThat(properties.getHash()).isEqualTo(HASH);
-        assertThat(properties.getTrackers()).containsExactly("http://tracker.com");
-        assertThat(properties.getUploadRate()).isEqualTo(1);
-        assertThat(properties.getDownloadRate()).isEqualTo(2);
-        assertThat(properties.getSuperSeed()).isEqualTo(TorrentProperties.State.ENABLED);
-        assertThat(properties.getUseDHT()).isEqualTo(TorrentProperties.State.ENABLED);
-        assertThat(properties.getUsePEX()).isEqualTo(TorrentProperties.State.NOT_ALLOWED);
-        assertThat(properties.getSeedOverride()).isEqualTo(TorrentProperties.State.DISABLED);
-        assertThat(properties.getSeedRatio()).isEqualTo(7);
-        assertThat(properties.getSeedTime()).isEqualTo(Duration.ofSeconds(8));
-        assertThat(properties.getUploadSlots()).isEqualTo(9);
+
+        List<String> collect = properties.stream().map(TorrentProperties::getHash).collect(Collectors.toList());
+        assertThat(collect).hasSameElementsAs(Arrays.asList(HASH_1, HASH_2));
+
+        for(TorrentProperties property : properties) {
+            assertThat(property.getTrackers()).containsExactly("http://tracker.com");
+            assertThat(property.getUploadRate()).isEqualTo(1);
+            assertThat(property.getDownloadRate()).isEqualTo(2);
+            assertThat(property.getSuperSeed()).isEqualTo(TorrentProperties.State.ENABLED);
+            assertThat(property.getUseDHT()).isEqualTo(TorrentProperties.State.ENABLED);
+            assertThat(property.getUsePEX()).isEqualTo(TorrentProperties.State.NOT_ALLOWED);
+            assertThat(property.getSeedOverride()).isEqualTo(TorrentProperties.State.DISABLED);
+            assertThat(property.getSeedRatio()).isEqualTo(7);
+            assertThat(property.getSeedTime()).isEqualTo(Duration.ofSeconds(8));
+            assertThat(property.getUploadSlots()).isEqualTo(9);
+        }
     }
 
     private String getTestMessage(String fileName) throws Exception {

@@ -16,6 +16,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -134,6 +135,7 @@ class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
         }
 
         String jsonTorrentSnapshotMessage = invokeWithAuthentication(requestBuilder, client::get, true);
+        System.out.println("torrentFilesJsonMessage = " + jsonTorrentSnapshotMessage);
         torrentsCache.updateCache(messageParser.parseAsTorrentListSnapshot(jsonTorrentSnapshotMessage));
     }
 
@@ -144,20 +146,35 @@ class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
     }
 
     @Override
-    public TorrentFileList getTorrentFiles(List<String> torrentHashes) {
+    public Set<TorrentFileList> getTorrentFiles(List<String> torrentHashes) {
         String torrentFilesJsonMessage = executeAction(GET_FILES, torrentHashes, ImmutableList.of());
         return messageParser.parseAsTorrentFileList(torrentFilesJsonMessage);
     }
 
     @Override
-    public TorrentProperties getTorrentProperties(List<String> torrentHash) {
-        String jsonTorrentPropertiesMessage = executeAction(GET_PROP, ImmutableList.copyOf(torrentHash), ImmutableList.of());
+    public Optional<TorrentFileList> getTorrentFiles(String torrentHash) {
+        return getTorrentFiles(ImmutableList.of(torrentHash)).stream().findFirst();
+    }
+
+    @Override
+    public Set<TorrentProperties> getTorrentProperties(List<String> torrentHashes) {
+        String jsonTorrentPropertiesMessage = executeAction(GET_PROP, torrentHashes, ImmutableList.of());
         return messageParser.parseAsTorrentProperties(jsonTorrentPropertiesMessage);
     }
 
     @Override
-    public RequestResult startTorrent(List<String> hash) {
-        return executeBaseTorrentAction(START, hash);
+    public Optional<TorrentProperties> getTorrentProperties(String torrentHash) {
+        return getTorrentProperties(ImmutableList.of(torrentHash)).stream().findFirst();
+    }
+
+    @Override
+    public RequestResult startTorrent(List<String> hashes) {
+        return executeBaseTorrentAction(START, hashes);
+    }
+
+    @Override
+    public RequestResult startTorrent(String hash) {
+        return startTorrent(ImmutableList.of(hash));
     }
 
     @Override
@@ -166,8 +183,18 @@ class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
     }
 
     @Override
+    public RequestResult stopTorrent(String hash) {
+        return stopTorrent(ImmutableList.of(hash));
+    }
+
+    @Override
     public RequestResult pauseTorrent(List<String> hash) {
         return executeBaseTorrentAction(PAUSE, hash);
+    }
+
+    @Override
+    public RequestResult pauseTorrent(String hash) {
+        return pauseTorrent(ImmutableList.of(hash));
     }
 
     @Override
@@ -176,8 +203,18 @@ class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
     }
 
     @Override
+    public RequestResult forceStartTorrent(String hash) {
+        return forceStartTorrent(ImmutableList.of(hash));
+    }
+
+    @Override
     public RequestResult unpauseTorrent(List<String> hash) {
         return executeBaseTorrentAction(UN_PAUSE, hash);
+    }
+
+    @Override
+    public RequestResult unpauseTorrent(String hash) {
+        return unpauseTorrent(ImmutableList.of(hash));
     }
 
     @Override
@@ -186,13 +223,28 @@ class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
     }
 
     @Override
+    public RequestResult recheckTorrent(String hash) {
+        return recheckTorrent(ImmutableList.of(hash));
+    }
+
+    @Override
     public RequestResult removeTorrent(List<String> hash) {
         return executeBaseTorrentAction(REMOVE, hash);
     }
 
     @Override
+    public RequestResult removeTorrent(String hash) {
+        return removeTorrent(ImmutableList.of(hash));
+    }
+
+    @Override
     public RequestResult removeDataTorrent(List<String> hash) {
         return executeBaseTorrentAction(REMOVE_DATA, hash);
+    }
+
+    @Override
+    public RequestResult removeDataTorrent(String hash) {
+        return removeDataTorrent(ImmutableList.of(hash));
     }
 
     @Override

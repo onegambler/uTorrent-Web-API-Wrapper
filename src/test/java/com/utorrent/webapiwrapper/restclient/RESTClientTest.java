@@ -41,8 +41,7 @@ public class RESTClientTest {
 
     @Test
     public void testPost() throws Exception {
-        Request request = Request.builder().create();
-        String result = client.post(request);
+
     }
 
     @Test

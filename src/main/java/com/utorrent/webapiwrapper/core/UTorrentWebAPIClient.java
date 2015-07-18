@@ -10,6 +10,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -58,7 +59,18 @@ public interface UTorrentWebAPIClient extends Closeable {
      * @param torrentHashes a list of torrent hashes to query
      * @return a TorrentFileList object
      */
-    TorrentFileList getTorrentFiles(List<String> torrentHashes);
+    Set<TorrentFileList> getTorrentFiles(List<String> torrentHashes);
+
+    Optional<TorrentFileList> getTorrentFiles(String torrentHash);
+
+    /**
+     * It queries uTorrent for the specific torrent properties and returns an object representing
+     * its properties
+     *
+     * @param torrentHashes the torrent hash known to uTorrent
+     * @return a TorrentProperties object
+     */
+    Set<TorrentProperties> getTorrentProperties(List<String> torrentHashes);
 
     /**
      * It queries uTorrent for the specific torrent properties and returns an object representing
@@ -67,7 +79,7 @@ public interface UTorrentWebAPIClient extends Closeable {
      * @param torrentHash the torrent hash known to uTorrent
      * @return a TorrentProperties object
      */
-    TorrentProperties getTorrentProperties(List<String> torrentHash);
+    Optional<TorrentProperties> getTorrentProperties(String torrentHash);
 
     /**
      *
@@ -76,12 +88,16 @@ public interface UTorrentWebAPIClient extends Closeable {
      */
     RequestResult startTorrent(List<String> torrentHashes);
 
+    RequestResult startTorrent(String hash);
+
     /**
      *
      * @param torrentHashes
      * @return
      */
     RequestResult stopTorrent(List<String> torrentHashes);
+
+    RequestResult stopTorrent(String hash);
 
     /**
      *
@@ -90,12 +106,16 @@ public interface UTorrentWebAPIClient extends Closeable {
      */
     RequestResult pauseTorrent(List<String> torrentHashes);
 
+    RequestResult pauseTorrent(String hash);
+
     /**
      *
      * @param torrentHashes
      * @return
      */
     RequestResult forceStartTorrent(List<String> torrentHashes);
+
+    RequestResult forceStartTorrent(String hash);
 
     /**
      *
@@ -104,12 +124,16 @@ public interface UTorrentWebAPIClient extends Closeable {
      */
     RequestResult unpauseTorrent(List<String> torrentHashes);
 
+    RequestResult unpauseTorrent(String hash);
+
     /**
      *
      * @param torrentHashes
      * @return
      */
     RequestResult recheckTorrent(List<String> torrentHashes);
+
+    RequestResult recheckTorrent(String hash);
 
     /**
      *
@@ -118,12 +142,16 @@ public interface UTorrentWebAPIClient extends Closeable {
      */
     RequestResult removeTorrent(List<String> torrentHashes);
 
+    RequestResult removeTorrent(String hash);
+
     /**
      *
      * @param torrentHashes
      * @return
      */
     RequestResult removeDataTorrent(List<String> torrentHashes);
+
+    RequestResult removeDataTorrent(String hash);
 
     /**
      *

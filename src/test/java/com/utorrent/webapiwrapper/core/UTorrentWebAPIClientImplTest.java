@@ -1,6 +1,7 @@
 package com.utorrent.webapiwrapper.core;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.utorrent.webapiwrapper.core.entities.*;
 import com.utorrent.webapiwrapper.restclient.ConnectionParams;
 import com.utorrent.webapiwrapper.restclient.RESTClient;
@@ -20,6 +21,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.io.File;
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -41,8 +43,6 @@ public class UTorrentWebAPIClientImplTest {
     private UTorrentWebAPIClientImpl client;
 
     private URI serverURI;
-
-    private final String URI_ACTION_STRING_TEMPLATE = "%s?action=%s";
 
     @Before
     public void setUp() throws Exception {
@@ -165,16 +165,17 @@ public class UTorrentWebAPIClientImplTest {
         torrentFileList.setHash(HASH_1);
         ArgumentCaptor<Request> requestArgumentCaptor = ArgumentCaptor.forClass(Request.class);
         when(restClient.get(requestArgumentCaptor.capture())).thenReturn(HASH_1);
-        when(parser.parseAsTorrentFileList(HASH_1)).thenReturn(torrentFileList);
+        when(parser.parseAsTorrentFileList(HASH_1)).thenReturn(ImmutableSet.of(torrentFileList));
 
-        TorrentFileList result = client.getTorrentFiles(ImmutableList.of(HASH_1));
+        Optional<TorrentFileList> result = client.getTorrentFiles(HASH_1);
 
         QueryParam expectedHash = new QueryParam(UTorrentWebAPIClientImpl.HASH_QUERY_PARAM_NAME, HASH_1);
 
         Request actualRequest = requestArgumentCaptor.getValue();
         validateRequest(Action.GET_FILES, actualRequest, ImmutableList.of(expectedHash));
 
-        assertThat(result).isSameAs(torrentFileList);
+        assertThat(result).isPresent();
+        assertThat(result.get()).isSameAs(torrentFileList);
         verify(restClient, times(3)).get(any());
     }
 
@@ -182,17 +183,18 @@ public class UTorrentWebAPIClientImplTest {
     public void testGetTorrentProperties() throws Exception {
         TorrentProperties torrentPropertiesExpected = TorrentProperties.builder().build();
         when(restClient.get(any(Request.class))).thenReturn(TOKEN_VALUE);
-        when(parser.parseAsTorrentProperties(BUILD_STRING)).thenReturn(torrentPropertiesExpected);
-        client.getTorrentProperties(ImmutableList.of(HASH_1));
+        when(parser.parseAsTorrentProperties(BUILD_STRING)).thenReturn(ImmutableSet.of(torrentPropertiesExpected));
+        client.getTorrentProperties(HASH_1);
 
         ArgumentCaptor<Request> requestArgumentCaptor = ArgumentCaptor.forClass(Request.class);
         when(restClient.get(requestArgumentCaptor.capture())).thenReturn(BUILD_STRING);
-        TorrentProperties actualTorrentProperties = client.getTorrentProperties(ImmutableList.of(HASH_1));
+        Optional<TorrentProperties> actualTorrentProperties = client.getTorrentProperties(HASH_1);
 
         Request actualRequest = requestArgumentCaptor.getValue();
         validateRequest(Action.GET_PROP, actualRequest, ImmutableList.of(new QueryParam(UTorrentWebAPIClientImpl.HASH_QUERY_PARAM_NAME, HASH_1)));
 
-        assertThat(actualTorrentProperties).isSameAs(torrentPropertiesExpected);
+        assertThat(actualTorrentProperties).isPresent();
+        assertThat(actualTorrentProperties.get()).isSameAs(torrentPropertiesExpected);
         verify(restClient, times(3)).get(any());
 
     }

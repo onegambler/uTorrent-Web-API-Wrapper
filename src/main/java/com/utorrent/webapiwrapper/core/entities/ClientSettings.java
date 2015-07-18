@@ -1,7 +1,9 @@
 package com.utorrent.webapiwrapper.core.entities;
 
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
+import lombok.ToString;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -9,6 +11,7 @@ import java.util.Map;
 
 import static java.util.Objects.requireNonNull;
 
+@ToString
 public class ClientSettings {
 
     private Map<String, Setting> settingsMap;

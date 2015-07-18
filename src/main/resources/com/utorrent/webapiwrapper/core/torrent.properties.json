@@ -2,7 +2,20 @@
   "build": 999,
   "props": [
     {
-      "hash": "HASH",
+      "hash": "HASH_1",
+      "trackers": "http://tracker.com",
+      "ulrate": 1,
+      "dlrate": 2,
+      "superseed": 1,
+      "dht": 1,
+      "pex": -1,
+      "seed_override": 0,
+      "seed_ratio": 7,
+      "seed_time": 8,
+      "ulslots": 9
+    },
+    {
+      "hash": "HASH_2",
       "trackers": "http://tracker.com",
       "ulrate": 1,
       "dlrate": 2,
