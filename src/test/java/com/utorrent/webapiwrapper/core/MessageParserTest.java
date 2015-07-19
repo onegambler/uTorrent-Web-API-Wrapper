@@ -89,6 +89,19 @@ public class MessageParserTest {
         }
     }
 
+    @Test
+    public void whenJSONMessageIsPassedThenParseItAsTorrentSnapshot() throws Exception {
+        String message = getTestMessage("com/utorrent/webapiwrapper/core/torrent.snapshot.json");
+        TorrentListSnapshot snapshot = messageParser.parseAsTorrentListSnapshot(message);
+        assertThat(snapshot).isNotNull();
+
+        assertThat(snapshot.getCacheID()).isEqualTo("528600545");
+        assertThat(snapshot.getTorrentToRemoveHashes()).containsExactly("HASH_TO_REMOVE");
+        assertThat(snapshot.getTorrentsToAdd()).hasSize(3);
+        assertThat(snapshot.getTorrentsToAdd().stream().map(Torrent::getHash).collect(Collectors.toList()))
+                .containsOnly("1B1C06C35E76108149FEAE1072C71CD0E5712D71", "37C6B38465E1D9E70D3FC30E9B99832C905201FE", "45A99097064EB6158A35AF15B677643B01E2C89E");
+    }
+
     private String getTestMessage(String fileName) throws Exception {
         InputStream resource = getClass().getClassLoader().getResourceAsStream(fileName);
         requireNonNull(resource);

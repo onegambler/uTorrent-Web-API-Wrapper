@@ -14,10 +14,12 @@ It has been developer using Java 8 and implements all the operations allowed thr
 * Set files priority
 
 Set up
+-------
 
 Enable the web UI in utorrent: http://www.utorrent.com/help/guides/webui
 
 How to use
+-------
 
     ConnectionParams connectionParams = ConnectionParams.builder()
                 .withScheme("http")

@@ -320,11 +320,6 @@ public enum SettingsKey {
             keyMap.put(key.getKeyValue(), key);
         }
     }
-
-    public Class<?> getType() {
-        return type;
-    }
-
     SettingsKey(String keyValue, Class<?> type) {
         this.keyValue = keyValue;
         this.type = type;
@@ -335,7 +330,4 @@ public enum SettingsKey {
         return keyValue;
     }
 
-    public static SettingsKey getKeyByValue(String value) {
-        return keyMap.get(value);
-    }
 }
