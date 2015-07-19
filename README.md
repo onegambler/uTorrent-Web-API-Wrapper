@@ -3,7 +3,7 @@ Java wrapper for the uTorrent Web API.
 
 Project Description
 -------
-This library allows java developers to easily access the uTorrent Web Client API and control it using Java.
+This library allows java developers to easily access the uTorrent Web API and control it using Java.
 It provides a clean facade object over the uTorrent JSON API, and supports automatic updating and caching of results.
 
 It has been developer using Java 8 and implements all the operations allowed through the Web API:
