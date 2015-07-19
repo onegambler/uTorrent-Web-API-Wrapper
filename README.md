@@ -27,10 +27,10 @@ How to use
                 .withAddress("host.com", 8080)
                 .withTimeout(1500)
                 .create();
-    UTorrentWebAPIClient client = UTorrentWebAPIClient.getClient();
+    UTorrentWebAPIClient client = UTorrentWebAPIClient.getClient(connectionParams);
 
     Set<Torrent> torrents = client.getAllTorrents();
 
     client.addTorrent(new File("filePath"));
 
-    client.stopTorrent(Collections.singleton("hash"));
+    client.stopTorrent("torrent_hash");
