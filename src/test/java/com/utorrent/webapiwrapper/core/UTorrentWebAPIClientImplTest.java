@@ -240,6 +240,26 @@ public class UTorrentWebAPIClientImplTest {
     }
 
     @Test
+    public void testQueueTopTorrent() throws Exception {
+        testSimpleTorrentAction(Action.QUEUE_TOP, client::queueTopTorrent);
+    }
+
+    @Test
+    public void testQueueUpTorrent() throws Exception {
+        testSimpleTorrentAction(Action.QUEUE_UP, client::queueUpTorrent);
+    }
+
+    @Test
+    public void testQueueDownTorrent() throws Exception {
+        testSimpleTorrentAction(Action.QUEUE_DOWN, client::queueDownTorrent);
+    }
+
+    @Test
+    public void testQueueBottomTorrent() throws Exception {
+        testSimpleTorrentAction(Action.QUEUE_BOTTOM, client::queueBottomTorrent);
+    }
+
+    @Test
     public void testSetTorrentFilePriority() throws Exception {
         final Priority priority = Priority.HIGH_PRIORITY;
 
@@ -300,13 +320,13 @@ public class UTorrentWebAPIClientImplTest {
         verify(restClient, times(3)).get(any());
     }
 
-    private void testSimpleTorrentAction(Action action, Function<List<String>, RequestResult> actionMethod) {
+    private void testSimpleTorrentAction(Action action, Function<String, RequestResult> actionMethod) {
         when(restClient.get(any(Request.class))).thenReturn(TOKEN_VALUE);
-        actionMethod.apply(ImmutableList.of());
+        actionMethod.apply("");
 
         ArgumentCaptor<Request> requestArgumentCaptor = ArgumentCaptor.forClass(Request.class);
         when(restClient.get(requestArgumentCaptor.capture())).thenReturn(BUILD_STRING);
-        RequestResult requestResult = actionMethod.apply(ImmutableList.of(HASH_1));
+        RequestResult requestResult = actionMethod.apply(HASH_1);
         assertThat(requestResult).isEqualTo(RequestResult.SUCCESS);
 
         QueryParam expectedHash = new QueryParam(UTorrentWebAPIClientImpl.HASH_QUERY_PARAM_NAME, HASH_1);

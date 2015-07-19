@@ -15,7 +15,11 @@ enum Action {
     GET_FILES("getfiles"),
     GET_SETTINGS("getsettings"),
     SET_SETTING("setsetting"),
-    ADD_FILE("add-file");
+    ADD_FILE("add-file"),
+    QUEUE_BOTTOM("queuebottom"),
+    QUEUE_DOWN("queuedown"),
+    QUEUE_TOP("queuetop"),
+    QUEUE_UP("queueup");
 
     private String name;
 

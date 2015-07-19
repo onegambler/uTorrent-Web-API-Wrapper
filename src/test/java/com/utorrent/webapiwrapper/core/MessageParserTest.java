@@ -1,20 +1,16 @@
 package com.utorrent.webapiwrapper.core;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.gson.JsonSyntaxException;
 import com.utorrent.webapiwrapper.core.entities.*;
 import com.utorrent.webapiwrapper.utils.IOUtils;
 import org.junit.Test;
 
 import java.io.InputStream;
-import java.math.BigInteger;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;

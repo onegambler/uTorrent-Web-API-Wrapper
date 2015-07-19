@@ -135,7 +135,6 @@ class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
         }
 
         String jsonTorrentSnapshotMessage = invokeWithAuthentication(requestBuilder, client::get, true);
-        System.out.println("torrentFilesJsonMessage = " + jsonTorrentSnapshotMessage);
         torrentsCache.updateCache(messageParser.parseAsTorrentListSnapshot(jsonTorrentSnapshotMessage));
     }
 
@@ -245,6 +244,46 @@ class UTorrentWebAPIClientImpl implements UTorrentWebAPIClient {
     @Override
     public RequestResult removeDataTorrent(String hash) {
         return removeDataTorrent(ImmutableList.of(hash));
+    }
+
+    @Override
+    public RequestResult queueBottomTorrent(List<String> hash) {
+        return executeBaseTorrentAction(QUEUE_BOTTOM, hash);
+    }
+
+    @Override
+    public RequestResult queueBottomTorrent(String hash) {
+        return queueBottomTorrent(ImmutableList.of(hash));
+    }
+
+    @Override
+    public RequestResult queueUpTorrent(List<String> hash) {
+        return executeBaseTorrentAction(QUEUE_UP, hash);
+    }
+
+    @Override
+    public RequestResult queueUpTorrent(String hash) {
+        return queueUpTorrent(ImmutableList.of(hash));
+    }
+
+    @Override
+    public RequestResult queueDownTorrent(List<String> hash) {
+        return executeBaseTorrentAction(QUEUE_DOWN, hash);
+    }
+
+    @Override
+    public RequestResult queueDownTorrent(String hash) {
+        return queueDownTorrent(ImmutableList.of(hash));
+    }
+
+    @Override
+    public RequestResult queueTopTorrent(List<String> hash) {
+        return executeBaseTorrentAction(QUEUE_TOP, hash);
+    }
+
+    @Override
+    public RequestResult queueTopTorrent(String hash) {
+        return queueTopTorrent(ImmutableList.of(hash));
     }
 
     @Override
