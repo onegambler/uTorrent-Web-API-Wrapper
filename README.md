@@ -16,7 +16,7 @@ It has been developer using Java 8 and implements all the operations allowed thr
 Set up
 -------
 
-Enable the web UI in utorrent: http://www.utorrent.com/help/guides/webui
+Enable the web UI in utorrent: http://help.utorrent.com/customer/portal/articles/1573941
 
 How to use
 -------

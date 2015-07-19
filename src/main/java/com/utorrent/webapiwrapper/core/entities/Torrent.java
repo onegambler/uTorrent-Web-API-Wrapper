@@ -6,7 +6,6 @@ import lombok.Data;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -33,11 +32,14 @@ public class Torrent {
 	private long availability;
 	private long torrentQueueOrder;
 	private long remaining;
-	private int torrentNumber;
-	private String statusInString;
+	private int streamId;
+	private String statusMessage;
 	private final Instant dateAdded;
 	private final Instant dateCompleted;
 	private Path path;
+	private String downloadURL;
+	private String rssFeedURL;
+	private String appUpdateURL;
 
 	public enum TorrentStatus {
 		STARTED(1),
