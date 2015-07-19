@@ -1,10 +1,10 @@
 # uTorrent-Web-API-Wrapper
-Java wrapper for the uTorrent Web API.
+Java wrapper for the µTorrent Web API.
 
 Project Description
 -------
-This library allows java developers to easily access the uTorrent Web API and control it using Java.
-It provides a clean facade object over the uTorrent JSON API, and supports automatic updating and caching of results.
+This library allows java developers to easily access the µTorrent Web API and control it using Java.
+It provides a clean facade object over the µTorrent JSON API, and supports automatic updating and caching of results.
 
 It has been developer using Java 8 and implements all the operations allowed through the Web API:
 
@@ -17,7 +17,7 @@ It has been developer using Java 8 and implements all the operations allowed thr
 Set up
 -------
 
-Enable the web UI in utorrent: http://help.utorrent.com/customer/portal/articles/1573941
+Enable the web UI in µTorrent: http://help.utorrent.com/customer/portal/articles/1573941
 
 How to use
 -------
