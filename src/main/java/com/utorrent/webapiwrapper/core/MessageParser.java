@@ -20,6 +20,8 @@ import static com.utorrent.webapiwrapper.core.MessageParser.TorrentField.*;
 
 public class MessageParser {
 
+    private static final int BUILD_221 = 19;
+
     private final Gson jsonParser = new Gson();
 
     public TorrentListSnapshot parseAsTorrentListSnapshot(String jsonMessage) {
@@ -53,27 +55,33 @@ public class MessageParser {
     }
 
     private Torrent parseAsTorrent(JsonArray jsonTorrentMessage) {
+        Torrent.TorrentBuilder torrentBuilder = Torrent.builder();
 
-        Torrent.TorrentBuilder torrentBuilder = Torrent.builder()
-                .hash(TORRENT_HASH.getAsString(jsonTorrentMessage))
-                .statuses(TorrentStatus.decodeStatus(TORRENT_STATUS.getAsInt(jsonTorrentMessage)))
-                .name(TORRENT_NAME.getAsString(jsonTorrentMessage))
-                .size(TORRENT_SIZE.getAsLong(jsonTorrentMessage))
-                .progress(TORRENT_PROGRESS.getAsLong(jsonTorrentMessage) / 10)
-                .downloaded(TORRENT_DOWNLOADED.getAsLong(jsonTorrentMessage))
-                .uploaded(TORRENT_UPLOADED.getAsLong(jsonTorrentMessage))
-                .ratio(TORRENT_RATIO.getAsFloat(jsonTorrentMessage) / 1000)
-                .uploadSpeed(TORRENT_UPSPEED.getAsLong(jsonTorrentMessage))
-                .downloadSpeed(TORRENT_DOWNSPEED.getAsLong(jsonTorrentMessage))
-                .eta(Duration.ofSeconds(TORRENT_ETA.getAsLong(jsonTorrentMessage)))
-                .label(TORRENT_LABEL.getAsString(jsonTorrentMessage))
-                .peersConnected(TORRENT_PEERS_CONNECTED.getAsInt(jsonTorrentMessage))
-                .peersInSwarm(TORRENT_PEERS_SWARM.getAsInt(jsonTorrentMessage))
-                .seedsConnected(TORRENT_SEEDS_CONNECTED.getAsInt(jsonTorrentMessage))
-                .seedsInSwarm(TORRENT_SEEDS_SWARM.getAsInt(jsonTorrentMessage))
-                .availability(TORRENT_AVAILABILITY.getAsLong(jsonTorrentMessage))
-                .torrentQueueOrder(TORRENT_QUEUE_POSITION.getAsLong(jsonTorrentMessage))
-                .remaining(TORRENT_REMAINING.getAsLong(jsonTorrentMessage))
+        if(jsonTorrentMessage.size() >= BUILD_221){
+            torrentBuilder = torrentBuilder
+                    .hash(TORRENT_HASH.getAsString(jsonTorrentMessage))
+                    .statuses(TorrentStatus.decodeStatus(TORRENT_STATUS.getAsInt(jsonTorrentMessage)))
+                    .name(TORRENT_NAME.getAsString(jsonTorrentMessage))
+                    .size(TORRENT_SIZE.getAsLong(jsonTorrentMessage))
+                    .progress(TORRENT_PROGRESS.getAsLong(jsonTorrentMessage) / 10)
+                    .downloaded(TORRENT_DOWNLOADED.getAsLong(jsonTorrentMessage))
+                    .uploaded(TORRENT_UPLOADED.getAsLong(jsonTorrentMessage))
+                    .ratio(TORRENT_RATIO.getAsFloat(jsonTorrentMessage) / 1000)
+                    .uploadSpeed(TORRENT_UPSPEED.getAsLong(jsonTorrentMessage))
+                    .downloadSpeed(TORRENT_DOWNSPEED.getAsLong(jsonTorrentMessage))
+                    .eta(Duration.ofSeconds(TORRENT_ETA.getAsLong(jsonTorrentMessage)))
+                    .label(TORRENT_LABEL.getAsString(jsonTorrentMessage))
+                    .peersConnected(TORRENT_PEERS_CONNECTED.getAsInt(jsonTorrentMessage))
+                    .peersInSwarm(TORRENT_PEERS_SWARM.getAsInt(jsonTorrentMessage))
+                    .seedsConnected(TORRENT_SEEDS_CONNECTED.getAsInt(jsonTorrentMessage))
+                    .seedsInSwarm(TORRENT_SEEDS_SWARM.getAsInt(jsonTorrentMessage))
+                    .availability(TORRENT_AVAILABILITY.getAsLong(jsonTorrentMessage))
+                    .torrentQueueOrder(TORRENT_QUEUE_POSITION.getAsLong(jsonTorrentMessage))
+                    .remaining(TORRENT_REMAINING.getAsLong(jsonTorrentMessage));
+        }
+
+        if(jsonTorrentMessage.size() > BUILD_221){
+            torrentBuilder
                 .statusMessage(TORRENT_STATUS_MESSAGE.getAsString(jsonTorrentMessage))
                 .streamId(TORRENT_STREAM_ID.getAsInt(jsonTorrentMessage))
                 .dateAdded(Instant.ofEpochSecond(TORRENT_DATE_ADDED.getAsLong(jsonTorrentMessage)))
@@ -81,14 +89,14 @@ public class MessageParser {
                 .rssFeedURL(TORRENT_RSS_FEED_URL.getAsString(jsonTorrentMessage))
                 .appUpdateURL(TORRENT_APP_UPDATE_URL.getAsString(jsonTorrentMessage));
 
-        if (jsonTorrentMessage.get(24).getAsLong() > 0) {
-            torrentBuilder.dateCompleted(Instant.ofEpochSecond(TORRENT_DATE_COMPLETED.getAsLong(jsonTorrentMessage)));
+            if (jsonTorrentMessage.get(24).getAsLong() > 0) {
+                torrentBuilder.dateCompleted(Instant.ofEpochSecond(TORRENT_DATE_COMPLETED.getAsLong(jsonTorrentMessage)));
+            }
+
+            torrentBuilder.path(Paths.get(TORRENT_SAVE_PATH.getAsString(jsonTorrentMessage)));
         }
 
-        torrentBuilder.path(Paths.get(TORRENT_SAVE_PATH.getAsString(jsonTorrentMessage)));
-
         return torrentBuilder.build();
-
     }
 
     public Set<TorrentFileList> parseAsTorrentFileList(String jsonMessage) {

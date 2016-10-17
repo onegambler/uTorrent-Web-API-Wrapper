@@ -25,6 +25,7 @@ How to use
     ConnectionParams connectionParams = ConnectionParams.builder()
                 .withScheme("http")
                 .withCredentials("username", "password")
+                .enableAuthentication(true)
                 .withAddress("host.com", 8080)
                 .withTimeout(1500)
                 .create();

@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertNull;
 
 public class MessageParserTest {
 
@@ -101,6 +102,31 @@ public class MessageParserTest {
         assertThat(snapshot.getTorrentsToAdd().stream().map(Torrent::getHash).collect(Collectors.toList()))
                 .containsOnly("1B1C06C35E76108149FEAE1072C71CD0E5712D71", "37C6B38465E1D9E70D3FC30E9B99832C905201FE", "45A99097064EB6158A35AF15B677643B01E2C89E");
     }
+
+    @Test
+    public void whenJSONMessageNotContainsEnoughEntries() throws Exception {
+        String message = getTestMessage("com/utorrent/webapiwrapper/core/torrent.snapshot.old-build.json");
+        TorrentListSnapshot snapshot = messageParser.parseAsTorrentListSnapshot(message);
+        assertThat(snapshot).isNotNull();
+
+        assertThat(snapshot.getCacheID()).isEqualTo("247996221");
+        assertThat(snapshot.getTorrentToRemoveHashes()).isEmpty();
+        assertThat(snapshot.getTorrentsToAdd()).hasSize(1);
+
+        snapshot.getTorrentsToAdd().stream()
+                .forEach(torrent -> {
+                    assertNull("StatusMessage should be null", torrent.getStatusMessage());
+                    assertThat(torrent.getStreamId()).isEqualTo(0);
+                    assertNull("DateAdded should be null", torrent.getDateAdded());
+                    assertNull("DownloadURL should be null", torrent.getDownloadURL());
+                    assertNull("RssFeedURL should be null", torrent.getRssFeedURL());
+                    assertNull("AppUpdateURL should be null", torrent.getAppUpdateURL());
+                    assertNull("DateCompleted should be null", torrent.getDateCompleted());
+                    assertNull("Path should be null", torrent.getPath());
+                });
+    }
+
+    /* ========== */
 
     private String getTestMessage(String fileName) throws Exception {
         InputStream resource = getClass().getClassLoader().getResourceAsStream(fileName);
