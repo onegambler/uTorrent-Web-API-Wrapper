@@ -211,7 +211,7 @@ public interface UTorrentWebAPIClient extends Closeable {
     RequestResult removeDataTorrent(String hash);
 
     /**
-     * This action tells µTorrent to move the specified torrent to the bottom of the queue.
+     * This action tells ï¿½Torrent to move the specified torrent to the bottom of the queue.
      *
      * @param hash the list of torrent hashes to move
      * @return a result indicating whether the call completed with success or a fail
@@ -219,7 +219,7 @@ public interface UTorrentWebAPIClient extends Closeable {
     RequestResult queueBottomTorrent(List<String> hash);
 
     /**
-     * This action tells µTorrent to move the specified torrent to the bottom of the queue.
+     * This action tells ï¿½Torrent to move the specified torrent to the bottom of the queue.
      *
      * @param hash the torrent hash to move
      * @return a result indicating whether the call completed with success or a fail
@@ -227,7 +227,7 @@ public interface UTorrentWebAPIClient extends Closeable {
     RequestResult queueBottomTorrent(String hash);
 
     /**
-     * This action tells µTorrent to move the specified torrent one position up the queue.
+     * This action tells ï¿½Torrent to move the specified torrent one position up the queue.
      *
      * @param hash the list of torrent hashes to move
      * @return a result indicating whether the call completed with success or a fail
@@ -235,7 +235,7 @@ public interface UTorrentWebAPIClient extends Closeable {
     RequestResult queueUpTorrent(List<String> hash);
 
     /**
-     * This action tells µTorrent to move the specified torrent one position up the queue
+     * This action tells ï¿½Torrent to move the specified torrent one position up the queue
      *
      * @param hash the torrent hash to move
      * @return a result indicating whether the call completed with success or a fail
@@ -243,7 +243,7 @@ public interface UTorrentWebAPIClient extends Closeable {
     RequestResult queueUpTorrent(String hash);
 
     /**
-     * This action tells µTorrent to move the specified torrent one position down the queue.
+     * This action tells ï¿½Torrent to move the specified torrent one position down the queue.
      *
      * @param hash the list of torrent hashes to move
      * @return a result indicating whether the call completed with success or a fail
@@ -251,7 +251,7 @@ public interface UTorrentWebAPIClient extends Closeable {
     RequestResult queueDownTorrent(List<String> hash);
 
     /**
-     * This action tells µTorrent to move the specified torrent to the bottom of the queue.
+     * This action tells ï¿½Torrent to move the specified torrent to the bottom of the queue.
      *
      * @param hash the torrent hash to move
      * @return a result indicating whether the call completed with success or a fail
@@ -259,7 +259,7 @@ public interface UTorrentWebAPIClient extends Closeable {
     RequestResult queueDownTorrent(String hash);
 
     /**
-     * This action tells µTorrent to move the specified torrent to the top of the queue.
+     * This action tells ï¿½Torrent to move the specified torrent to the top of the queue.
      *
      * @param hash the list of torrent hashes to move
      * @return a result indicating whether the call completed with success or a fail
@@ -267,7 +267,7 @@ public interface UTorrentWebAPIClient extends Closeable {
     RequestResult queueTopTorrent(List<String> hash);
 
     /**
-     * This action tells µTorrent to move the specified torrent to the top of the queue.
+     * This action tells ï¿½Torrent to move the specified torrent to the top of the queue.
      *
      * @param hash the torrent hash to move
      * @return a result indicating whether the call completed with success or a fail

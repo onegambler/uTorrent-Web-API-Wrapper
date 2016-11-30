@@ -1,5 +1,5 @@
-{"build":40633,
-
+{
+  "build": 40633,
   "torrents": [
     [
       "1B1C06C35E76108149FEAE1072C71CD0E5712D71",
@@ -28,7 +28,9 @@
       1437173998,
       0,
       "",
-      "downloads\\PCLinuxOS-LXDE-32bit-2015-07-16-lz4-NL",0,"6A0C292A"
+      "downloads\\PCLinuxOS-LXDE-32bit-2015-07-16-lz4-NL",
+      0,
+      "6A0C292A"
     ],
     [
       "37C6B38465E1D9E70D3FC30E9B99832C905201FE",
@@ -57,9 +59,12 @@
       1437174006,
       0,
       "",
-      "downloads",0,"76346186"
+      "downloads",
+      0,
+      "76346186"
     ],
-    ["45A99097064EB6158A35AF15B677643B01E2C89E",
+    [
+      "45A99097064EB6158A35AF15B677643B01E2C89E",
       201,
       "NewFileDownloaded",
       1574985390,
@@ -87,13 +92,14 @@
       "",
       "downloads\\file.file",
       0,
-      "9C574B82"]
+      "9C574B82"
+    ]
   ],
   "label": [],
   "torrentm": [
     "HASH_TO_REMOVE"
   ],
-  "torrentc": "528600545"
-,"rssfeeds": []
-,"rssfilters": []
+  "torrentc": "528600545",
+  "rssfeeds": [],
+  "rssfilters": []
 }
