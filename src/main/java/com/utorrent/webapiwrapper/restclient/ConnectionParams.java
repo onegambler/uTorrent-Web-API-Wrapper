@@ -4,9 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Objects;
-import java.util.Optional;
-
 import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 
@@ -17,11 +14,11 @@ public class ConnectionParams {
     private int port;
     private String host;
     private String scheme;
-    private Optional<Credentials> credentials;
+    private Credentials credentials;
     private int timeout;
     private boolean authenticationEnabled;
 
-    private ConnectionParams(String scheme, String host, int port, Optional<Credentials> credentials, int timeout, boolean authenticationEnabled) {
+    private ConnectionParams(String scheme, String host, int port, Credentials credentials, int timeout, boolean authenticationEnabled) {
         this.scheme = scheme;
         this.host = host;
         this.port = port;
@@ -97,7 +94,7 @@ public class ConnectionParams {
             }
             requireNonNull(host, "A host value must be specified");
 
-            return new ConnectionParams(scheme, host, port, Optional.ofNullable(credentials), timeout, authenticationEnabled);
+            return new ConnectionParams(scheme, host, port, credentials, timeout, authenticationEnabled);
         }
     }
 }

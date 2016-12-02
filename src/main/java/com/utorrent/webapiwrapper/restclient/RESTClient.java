@@ -22,10 +22,9 @@ import org.apache.http.impl.client.HttpClients;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Objects;
 
+import static java.util.Objects.nonNull;
 import static java.util.Objects.requireNonNull;
 
 public class RESTClient implements Closeable {
@@ -41,8 +40,8 @@ public class RESTClient implements Closeable {
         this.client = client;
 
         this.httpClientContext = HttpClientContext.create();
-        if (params.getCredentials().isPresent()) {
-            ConnectionParams.Credentials credentials = params.getCredentials().get();
+        if (nonNull(params.getCredentials())) {
+            ConnectionParams.Credentials credentials = params.getCredentials();
             CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
             credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(credentials.getUsername(), credentials.getPassword()));
             httpClientContext.setAttribute(HttpClientContext.CREDS_PROVIDER, credentialsProvider);
